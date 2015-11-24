@@ -21,7 +21,7 @@ args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the
 # ball in the HSV color space
-ballColor = ballColors.speedball
+ballColor = ballColors.pingpong
 
 pts = deque(maxlen=args['buffer'])
 
@@ -110,7 +110,7 @@ def printBallPosition(frame):
 		posX = lastPos[0] - bounds['x']
 		posY = lastPos[1] - bounds['y']
 
-		if posX >= 0 and posX <= bounds['width'] and posY >= bounds['y'] and posY <= bounds['height']:
+		if posX >= 0 and posX <= bounds['width'] and posY >= 0 and posY <= bounds['height']:
 			posXCm = math.floor((float(posX) / float(bounds['width'])) * float(physicalTableSize[0][0]))
 			posYCm = math.floor((float(posY) / float(bounds['height'])) * float(physicalTableSize[0][1]))
 			cv2.putText(frame, 'Ball position: x:{}, y:{}'.format(posXCm, posYCm),
@@ -196,11 +196,11 @@ while True:
 		M = cv2.moments(c)
 		center = (int(M['m10'] / M['m00']), int(M['m01'] / M['m00']))
 
-		# if the frame has been cut, be sure to substract the cut Frame's origins
+		# if the frame has been cut, be sure to add the cut Frame's origins
 		if len(tableDimensions) == 2:
-			x -= bounds['x']
-			y -= bounds['y']
-			center = ( center[ 0 ] - bounds['x'], center[ 1 ] - bounds['y'] )
+			x += bounds['x']
+			y += bounds['y']
+			center = ( center[ 0 ] + bounds['x'], center[ 1 ] + bounds['y'] )
 
 		# logging.info('Radius: %d', radius)
 
