@@ -21,7 +21,7 @@ args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the
 # ball in the HSV color space
-ballColor = ballColors.leonhart
+ballColor = ballColors.speedball
 
 pts = deque(maxlen=args['buffer'])
 
@@ -196,12 +196,19 @@ while True:
 		M = cv2.moments(c)
 		center = (int(M['m10'] / M['m00']), int(M['m01'] / M['m00']))
 
+		# if the frame has been cut, be sure to substract the cut Frame's origins
+		if len(tableDimensions) == 2:
+			x -= bounds['x']
+			y -= bounds['y']
+			center = ( center[ 0 ] - bounds['x'], center[ 1 ] - bounds['y'] )
+
 		# logging.info('Radius: %d', radius)
 
 		# only proceed if the radius meets a minimum size
 		if radius > 10:
 			# draw the circle and centroid on the frame,
 			# then update the list of tracked points
+
 			cv2.circle(frame, (int(x), int(y)), int(radius),
 					   (0, 255, 255), 2)
 			cv2.circle(frame, center, 5, (0, 0, 255), -1)

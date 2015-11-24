@@ -17,6 +17,7 @@ brew update
 brew install python
 brew tap homebrew/science
 brew install opencv
+ # opencv will also install the python numpy library    
 
 ```
 
@@ -25,11 +26,15 @@ the following is in your PATH
 
 `export PATH=/usr/local/bin:$PATH`
 
-Some extra Python libraries to install are
- 
-```
-pip install numpy
-``` 
+You can check this by running:
+
+`which python`
+
+and it should mention `/usr/local/bin/python`
+
+Other packages to install:
+
+`pip install imutils`
 
 ### Freenect (the Open Kinect library) for Python
 

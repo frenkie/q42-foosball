@@ -8,6 +8,11 @@ leonhart = {
 	'upper': ( 70, 100, 255 )
 }
 
+garlando = {
+	'lower':( 2, 180, 180 ),
+	'upper': ( 8, 220, 200 )
+}
+
 speedball = {
 	'lower':( 25, 100, 80 ),
 	'upper': ( 35, 240, 230 )
