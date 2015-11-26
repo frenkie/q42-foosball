@@ -9,6 +9,8 @@ import cv2
 import logging
 import math
 import ballColors
+import websocket
+from websocket import create_connection
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -21,18 +23,18 @@ args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the
 # ball in the HSV color space
-ballColor = ballColors.pingpong
+ballColor = ballColors.speedball
 
 pts = deque(maxlen=args['buffer'])
 
 if not args.get('kinect'):
-	camera = cv2.VideoCapture(0)
+	camera = cv2.VideoCapture(1)
 else:
 	import freenect
 
 tableDimensions = []
 physicalTableSize = []
-dragAndDraw = False;
+dragAndDraw = False
 dragPoint = []
 
 #############################
@@ -50,6 +52,8 @@ e2.grid(row=1, column=1)
 
 
 #############################
+
+ws = create_connection("ws://echo.websocket.org/")
 
 ################################
 
@@ -113,9 +117,12 @@ def printBallPosition(frame):
 		if posX >= 0 and posX <= bounds['width'] and posY >= 0 and posY <= bounds['height']:
 			posXCm = math.floor((float(posX) / float(bounds['width'])) * float(physicalTableSize[0][0]))
 			posYCm = math.floor((float(posY) / float(bounds['height'])) * float(physicalTableSize[0][1]))
+
 			cv2.putText(frame, 'Ball position: x:{}, y:{}'.format(posXCm, posYCm),
 						(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 						0.55, (255, 255, 255), 2)
+
+			ws.send('Ball position: x:{}, y:{}'.format(posXCm, posYCm) )
 
 
 def printTableSize(frame):
@@ -135,6 +142,21 @@ def setTableSize():
 
 
 ################################
+# Sockets
+
+def onSocketMessage(ws, message):
+    print message
+
+def onSocketConnected(ws):
+	print '## socket connected! ##'
+
+def onSocketError(ws, error):
+    print error
+
+def onSocketClose(ws):
+    print "### closed ###"
+
+################################
 
 logging.basicConfig(level=getattr(logging, 'INFO', None));
 
@@ -149,6 +171,15 @@ Button(master, text='Save', command=setTableSize).grid(row=3, column=0, sticky=W
 
 # user first has to enter table dimensions before we start tracking
 mainloop()
+
+# ws = websocket.WebSocketApp("ws://echo.websocket.org/",
+# 						  on_message = onSocketMessage,
+# 						  on_error = onSocketError,
+# 						  on_close = onSocketClose)
+
+# ws.run_forever()
+
+ws.on_open = onSocketConnected
 
 # keep looping while tracking
 while True:
@@ -171,6 +202,9 @@ while True:
 		bounds = getTableBounds()
 		frameCut = frame[bounds['y']:(bounds['yMax']), bounds['x']:(bounds['xMax'])]
 		hsv = cv2.cvtColor(frameCut, cv2.COLOR_BGR2HSV)
+		# TODO, now the mask has different x,y etc. Contours should be drawn
+		# accordingly further on
+
 	else:
 		hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -257,4 +291,5 @@ while True:
 if not args.get('kinect'):
 	camera.release()
 
+ws.close()
 cv2.destroyAllWindows()

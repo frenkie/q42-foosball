@@ -1,0 +1,12 @@
+{
+  "name": "q42-foosball-server",
+  "version": "1.0.0",
+  "description": "A Digital Foosball server",
+  "devDependencies": {
+    "express": "^4.13.3",
+    "socket.io": "^1.3.7"
+  },
+  "dependencies": {
+    "jquery": "^2.1.4"
+  }
+}

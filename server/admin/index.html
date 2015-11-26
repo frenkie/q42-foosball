@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Q42 Foosbll server test</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    </head>
+    <body>
+
+        <div id="app">
+            <div class="container">
+                <div class="row">
+                    <h1 class="page-header">
+                        Game Admin.
+                    </h1>
+
+                    <p>Pass on commands to the game as if you were a client</p>
+
+                    <div class="commandos">
+
+
+                        <h2>Send coordinates</h2>
+                        <input class="coord coord-x" type="text" style="width: 50px;" value="1">
+                        <input class="coord coord-y" type="text" style="width: 50px;" value="1">
+
+                        <button class="coordinates">send</button><br/><br/>
+                        <hr/>
+
+                        <!--<button class="start">Start</button><br/><br/>-->
+                        <!--<button class="lost">Lost</button><br/><br/>-->
+                        <!--<button class="won">Won</button><br/><br/>-->
+                        <!--<button class="reset">Reset</button><br/><br/>-->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+
+            $(function () {
+
+                var dl = document.location;
+                var socketServer = dl.origin;
+
+                var socket = io( socketServer );
+
+                $('button:not(.coordinates)' ).each(function () {
+
+                    var $button = $(this);
+
+                    $button.click(sendEvent);
+
+                    function sendEvent() {
+                        socket.emit( $button[0].className, $button[0].className );
+                    };
+
+                });
+
+
+                $('.coordinates').click(sendCoords);
+                $(document).keydown(function(e) {
+                    if(e.keyCode == 13){
+                        sendCoords();
+                    }
+                });
+
+
+                function sendCoords() {
+                    socket.emit( 'ball-position', {
+                        x: parseFloat( $('.coord-x').val() ) || 0,
+                        y: parseFloat( $('.coord-y').val() ) || 0
+                    } );
+                };
+            });
+
+        </script>
+    </body>
+</html>
