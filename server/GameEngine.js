@@ -19,6 +19,9 @@ var GameEngine = function ( socket ) {
 
     this.bindSocketEvents();
 
+    this.themes = ['standaard', 'gras', 'woestijn'];
+    this.currentTheme = 0;
+
     if ( Tracker ) {
         this.tracker = new Tracker();
         this.bindTrackerEvents();
@@ -46,6 +49,10 @@ GameEngine.prototype = {
             client.on('subtract-score-right', this.handleSubtractScoreRight.bind( this ) );
 
             client.on('reset-game', this.handleResetGame.bind( this ) );
+
+            client.on('get-themes', this.handleGetThemes.bind( this ) );
+            client.on('get-current-theme', this.handleGetCurrentTheme.bind( this ) );
+            client.on('change-theme', this.handleChangeTheme.bind( this ) );
 
 
         }.bind( this ) );
@@ -128,7 +135,7 @@ GameEngine.prototype = {
     },
 
     handleResetGame: function () {
-        this.resetGame();   
+        this.resetGame();
         this.socket.emit('reset-game');
     },
 
@@ -139,9 +146,26 @@ GameEngine.prototype = {
             score: {
                 left: 0,
                 right: 0
-            }
+            },
         };
+    },
+
+    handleGetThemes: function ( ) {
+        this.socket.emit('get-themes', this.themes);
+        console.log('get themes: ', this.themes);
+    },
+
+    handleGetCurrentTheme: function ( ) {
+        this.socket.emit('get-current-theme', this.currentTheme);
+        console.log('get current theme: ' + this.themes[this.currentTheme]);
+    },
+
+    handleChangeTheme: function ( index ) {
+        this.socket.emit('change-theme', index);
+        console.log('theme changed: ' + this.themes[index]);
+        this.currentTheme = index;
     }
+
 };
 
 module.exports = GameEngine;
