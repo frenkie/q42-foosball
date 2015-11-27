@@ -342,6 +342,14 @@ function onMouseMove ( event ) {
 }
 
 
+var socket = io("http://10.42.38.110:4000");
+
+socket.on('ball-positions', function ( positions ) {
+    console.log( positions.shift() );
+});
+
+
+
 // UTILS
 //function lineDistance ( point1x, point1y, point2x, point2y ) {
 //    var xs = 0;
