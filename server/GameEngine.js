@@ -44,7 +44,6 @@ GameEngine.prototype = {
             client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('score-right', this.handleScoreRight.bind( this ) );
 
-            client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('subtract-score-left', this.handleSubtractScoreLeft.bind( this ) );
             client.on('subtract-score-right', this.handleSubtractScoreRight.bind( this ) );
 
