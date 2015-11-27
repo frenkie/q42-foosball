@@ -9,4 +9,8 @@ h3 {
 
 .btn {
     min-width: 100%;
+    /*
+    padding: 10px 16px;
+    font-size: 18px;
+    line-height: 1.3333333;*/
 }

@@ -7,6 +7,7 @@ var MAIN = (function () {
     // global variables
     var
         socket = null;
+        $ddThemes = null;
 
     // initialize
     function init(){
@@ -20,6 +21,11 @@ var MAIN = (function () {
         $('#btn-score-right').on('click', scoreRight);
         $('#btn-subtract-score-left').on('click', subtractScoreLeft);
         $('#btn-subtract-score-right').on('click', subtractScoreRight);
+
+        $ddThemes = $('#dd-change-theme');
+        socket.emit('get-themes');
+        socket.emit('get-current-theme');
+        $ddThemes.on('change', changeTheme);
     }
 
     init ();
@@ -27,6 +33,16 @@ var MAIN = (function () {
     //socket connection test
     socket.on('ball-positions', function (positions) {
         console.log( positions.shift() );
+    });
+
+    socket.on('get-themes', function (themes) {
+        console.log( 'themes', themes);
+        //$ddThemes.val(theme);
+    });
+
+    socket.on('get-current-theme', function (theme) {
+        console.log( 'theme:' + theme);
+        $ddThemes.val(theme);
     });
 
     function scoreLeft(){
@@ -47,6 +63,11 @@ var MAIN = (function () {
 
     function resetGame(){
         socket.emit('reset-game');
+    }
+
+
+    function changeTheme(){
+        socket.emit('change-theme', this.value);
     }
 
 
