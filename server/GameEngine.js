@@ -42,6 +42,9 @@ GameEngine.prototype = {
             client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('score-right', this.handleScoreRight.bind( this ) );
 
+            client.on('subtract-score-left', this.handleSubtractScoreLeft.bind( this ) );
+            client.on('subtract-score-right', this.handleSubtractScoreRight.bind( this ) );
+
             client.on('reset-game', this.resetGame.bind( this ) );
 
 
@@ -88,11 +91,34 @@ GameEngine.prototype = {
         this.socket.emit('score-update', this.state.score );
     },
 
+
     handleScoreRight: function () {
         this.state.score.right++;
         console.log('right scored: ' + this.state.score.right);
 
         this.socket.emit('score-left', this.state.score);
+        this.socket.emit('score-update', this.state.score );
+    },
+
+    handleSubtractScoreLeft: function () {
+        this.state.score.left--;
+        if (this.state.score.left < 0){
+            this.state.score.left = 0;
+        }
+        console.log('left score subtracted: ' + this.state.score.left);
+
+        this.socket.emit('score-right', this.state.score );
+        this.socket.emit('score-update', this.state.score );
+    },
+
+    handleSubtractScoreRight: function () {
+        this.state.score.right--;
+        if (this.state.score.right < 0){
+            this.state.score.right = 0;
+        }
+        console.log('right score subtracted: ' + this.state.score.right);
+
+        this.socket.emit('score-left', this.state.score );
         this.socket.emit('score-update', this.state.score );
     },
 
