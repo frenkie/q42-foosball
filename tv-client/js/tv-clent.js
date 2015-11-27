@@ -1,7 +1,3 @@
-//function fussballViz(){
-//
-//}
-
 var backgroundLayer = project.activeLayer;
 var fieldLayer = new Layer();
 var hitLayer = new Layer();
@@ -13,45 +9,89 @@ var scoreLayer = new Layer();
 var ball;
 var background;
 var game;
-//var goals;
+var goal;
+var hits = [];
+
+var backgroundTheme = 0;
+
+var frenzy;
+var frenzyTeam = undefined;
+
+var useMousePos = false;
+var currentPos;
 
 var teamColors = ["red", "blue"];
 var ownerColor = "white";
 
 var replayBalls = [];
-
 var replaySeconds = 3;
 var replayPositions = [];
 
 var size = view.size;
-
 var screenSize = {
-    x : 68,
-    y : 120
+    x : 120,
+    y : 68
 };
 
-var mousePos;
-var useMousePos = false;
-
-var hits = [];
 
 var socket = io( "http://10.42.38.110:9090" );
-var currentPos;
 
-createjs.Sound.registerSound( "sounds/explosion-long.wav", "explosion-long" );
-createjs.Sound.registerSound( "sounds/explosion-short.wav", "explosion-short" );
-createjs.Sound.registerSound( "sounds/goal1.wav", "goal" );
+
+// SOUNDS
+var soundPlaying;
+
+var goalSound = new buzz.sound( "sounds/goal1", { formats : ["wav"] } );
+var explosionLongSound = new buzz.sound( "sounds/explosion-long", { formats : ["wav"] } );
+
+var fussBallSounds = new buzz.group([goalSound,explosionLongSound]);
+
+fussBallSounds.bind( "ended", function ( e ) {
+    soundPlaying = false;
+} );
+
+
 
 
 function handleSocketEvents () {
 
-    //socket.on('reset-game', function ( positions ) {
-    background = new Background();
-    pitch = new Pitch();
-    ball = new Ball();
-    game = new GameGraphics();
-    //});
+    socket.on( 'reset-game', function ( event ) {
+        console.log( "reset game:", event );
 
+        background = new Background();
+        pitch = new Pitch();
+        ball = new Ball();
+        game = new GameGraphics();
+    } );
+
+    socket.on( 'end-frenzy', function () {
+        frenzyTeam = undefined;
+    } );
+
+    socket.on( 'frenzy', function ( team ) {
+        console.log( "get current theme ", theme );
+
+        frenzyTeam = team;
+    } );
+
+    socket.on( 'get-current-theme', function ( theme ) {
+        console.log( "get current theme ", theme );
+
+        backgroundTheme = theme;
+
+        if ( background ) {
+            background.change( backgroundTheme );
+        }
+
+    } );
+
+    socket.on( 'change-theme', function ( theme ) {
+        console.log( "theme event:", theme );
+
+        backgroundTheme = theme;
+        if ( background ) {
+            background.change( backgroundTheme );
+        }
+    } );
 
     socket.on( 'ball-positions', function ( positions ) {
         if ( ! useMousePos ) {
@@ -104,7 +144,7 @@ Hit.prototype.iterate = function () {
 
 function ReplayBall () {
 
-    if ( ball.item ) {
+    if ( ball && ball.item ) {
         ball.item.remove();
     }
     ball.removeStills();
@@ -119,6 +159,30 @@ function ReplayBall () {
         fillColor : ownerColor
     } );
 
+    this.replayText1 = new PointText( {
+        point : [250, 250],
+        justification : 'center',
+        fontSize : 50,
+        fillColor : ownerColor
+    } );
+
+    this.replayText1.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+
+    this.replayText2 = new PointText( {
+        point : [size.width - 250, size.height - 250],
+        justification : 'center',
+        fontSize : 50,
+        fillColor : ownerColor
+    } );
+
+    this.replayText2.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+    this.replayText1.content = "REPLAY";
+    this.replayText2.content = "REPLAY";
+    this.replayText2.rotate( 180 );
 
 }
 
@@ -133,7 +197,81 @@ ReplayBall.prototype.iterate = function () {
         var i = replayBalls.indexOf( this );
         replayBalls.splice( i, 1 );
         ball = new Ball();
+
+        this.replayText1.remove();
+        this.replayText2.remove();
     }
+
+};
+
+var endFrenzy = function () {
+    frenzy = undefined;
+};
+
+var Frenzy = function ( owner ) {
+
+    var ownerColor = teamColors[owner];
+    overlayLayer.activate();
+
+    this.lifespan = 180;
+    this.frenzyTextGroup = [];
+
+    for ( var i = 0; i < 20; i ++ ) {
+        var text = new PointText( {
+            point : [i * 100, size.height / 2],
+            justification : 'center',
+            fontSize : 100,
+            fillColor : ownerColor
+        } );
+        text.style = {
+            fontFamily : 'Exo', fontWeight : 'bold'
+        };
+        text.content = "FRENZY FRENZY FRENZY   ";
+
+        if ( i % 2 == 0 ) {
+            text.content = "   FRENZY FRENZY FRENZY";
+        }
+        text.fillColor.hue = Math.floor( Math.random() * 30 );
+        text.opacity = 1;
+        text.rotate( 60 );
+        this.frenzyTextGroup.push( text );
+    }
+    ;
+
+};
+
+Frenzy.prototype.iterate = function () {
+
+    // Iterate through the items contained within the array:
+    for ( var i = 0; i < this.frenzyTextGroup.length; i ++ ) {
+        var child = this.frenzyTextGroup[i];
+
+
+        if ( this.lifespan % 10 == 0 ) {
+            child.fillColor.hue = Math.floor( Math.random() * 30 );
+        }
+
+        if ( this.lifespan % 15 == 0 ) {
+
+            var opt = Math.floor( Math.random() * 2 );
+            if ( opt == 0 ) {
+                child.opacity = 0;
+            } else {
+                child.opacity = 1;
+            }
+        }
+
+        if ( this.lifespan == 0 ) {
+            child.remove();
+        }
+    }
+
+    if ( this.lifespan == 0 ) {
+        this.frenzyTextGroup = [];
+        endFrenzy();
+    }
+
+    this.lifespan --;
 
 };
 
@@ -193,8 +331,8 @@ var Ball = function () {
     this.destination = Point.random() * (view.size + 100);
     this.stillCounter = 0;
 
-    this.replayPositions = [];
     this.maxReplayPositions = replaySeconds * 60;
+
 };
 
 
@@ -213,7 +351,6 @@ Ball.prototype.removeStills = function () {
 
 Ball.prototype.iterate = function ( position ) {
 
-    console.log( position );
     if ( ! useMousePos ) {
         this.item.position.x = position.x / screenSize.x * size.width;
         this.item.position.y = position.y / screenSize.y * size.height;
@@ -253,6 +390,14 @@ Ball.prototype.iterate = function ( position ) {
     }
 
     var speed = this.item.pre - this.item.position;
+
+    if ( speed.length > 30 && speed.length > this.preSpeed ) {
+        if ( ! soundPlaying ) {
+            explosionLongSound.play();
+            soundPlaying = true;
+        }
+    }
+
 
     if ( speed.length > 2 ) {
 
@@ -308,21 +453,8 @@ Ball.prototype.iterate = function ( position ) {
 
     }
 
-
+    this.preSpeed = speed.length;
     this.item.pre = this.item.position;
-
-
-    //The vector is the difference between the position of
-    //the text item and the destination point:
-
-    //var vector = this.destination - this.item.position;
-    //this.item.position += vector / 50;
-    //if ( vector.length < 5 ) {
-    //    this.destination = Point.random() * view.size;
-    //}
-
-
-    //this.item.position = mousePos;
 
 };
 
@@ -381,15 +513,7 @@ var Background = function () {
 
     backgroundLayer.activate();
 
-    this.backdrop = new Shape.Rectangle( {
-        center : [size.width / 2, size.height / 2],
-        size : [size.width, size.height],
-        fillColor : 'black'
-    } );
-
-
-    this.currentBackground = 1;
-
+    this.change( backgroundTheme );
 
 };
 
@@ -406,44 +530,75 @@ Background.prototype.change = function ( index ) {
 
 function Goal ( team ) {
 
-    pitch.change( teamColors[team] );
+    this.goalColor = teamColors[team];
+    pitch.change( this.goalColor );
 
     this.lifespan = 0;
 
     overlayLayer.activate();
 
+    this.backdrop = new Shape.Rectangle( {
+        center : [size.width / 2, size.height / 2],
+        size : [size.width, size.height],
+        fillColor : 'black'
+    } );
+
     this.scoreText = new PointText( {
-        point : view.center,
+        point : [size.width / 2, (size.height / 2 + 50)],
         justification : 'center',
-        fontSize : 20,
+        fontSize : 200,
         fillColor : 'white'
     } );
 
-    this.scoreText.content = "GOAL!!";
-    this.scoreText.rotation = 0;
+    this.scoreText.content = "GOAL!!!";
+    if ( team == 1 ) {
 
-    createjs.Sound.play( 'goal' );
+        this.scoreText.rotation = 180;
+    }
+
+    this.scoreText.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+
+    goalSound.play();
 
 }
 
 Goal.prototype.iterate = function () {
 
-    this.scoreText.scale( this.lifespan.map( 0, 180, 1, 1.3 ) );
-    this.scoreText.rotation = this.scoreText.rotation + 8;
+    this.lifespan ++;
 
+    if ( this.lifespan % 10 == 0 ) {
+
+        if ( this.backdrop.fillColor == this.goalColor ) {
+            this.backdrop.fillColor = "white";
+            this.scoreText.fillColor = this.goalColor;
+        } else {
+            this.backdrop.fillColor = this.goalColor;
+            this.scoreText.fillColor = "white";
+        }
+    }
 
     if ( this.lifespan == 180 ) {
         this.scoreText.remove();
-        var i = game.goals.indexOf( this );
-        game.goals.splice( i, 1 );
+        this.backdrop.remove();
+
+
+        replayBalls.push( new ReplayBall() );
+
+        if ( frenzyTeam ) {
+            frenzy = new Frenzy( frenzyTeam );
+        }
+        goalEnd();
     }
-    this.lifespan ++;
 };
 
+var goalEnd = function(){
+    goal = undefined;
+}
 
 function GameGraphics () {
     this.score = [0, 0];
-    this.goals = [];
 
     scoreLayer.activate();
 
@@ -462,20 +617,14 @@ GameGraphics.prototype = {
 
     goalScored : function ( team ) {
 
-        this.score[team] = this.score[team] + 1;
+        //this.score[team] = this.score[team] + 1;
 
-        this.goals.push( new Goal( team ) );
+        if (!goal){
+            goal = new Goal( team ) ;
+        }
 
-        replayBalls.push( new ReplayBall() );
-
-        //background.change();
-    },
-
-    updateScore : function () {
-        scoreLayer.activate();
-
-        this.scoreText.content = this.score[0] + " : " + this.score[1];
     }
+
 
 };
 
@@ -503,9 +652,13 @@ function onKeyUp ( event ) {
         game.goalScored( 1 );
     }
 
+    if ( event.key == 'f' ) {
+        console.log( 'frenzy!!!' );
+        frenzy = new Frenzy( 1 );
+    }
+
     if ( event.key == '0' ) {
         useMousePos = ! useMousePos;
-        //console.log( useMousePos );
     }
 }
 
@@ -521,17 +674,20 @@ function onFrame ( event ) {
             trailBalls[y].iterate();
         }
 
-
-        for ( var g = 0; g < game.goals.length; g ++ ) {
-            game.goals[g].iterate();
+        if ( goal ) {
+            goal.iterate();
         }
 
         if ( replayBalls.length ) {
             replayBalls[0].iterate();
         }
 
-        if ( ball && currentPos ) {
+        if ( ball && currentPos && !goal ) {
             ball.iterate( currentPos );
+        }
+
+        if ( frenzy ) {
+            frenzy.iterate();
         }
 
     }
@@ -549,3 +705,6 @@ Number.prototype.map = function ( in_min, in_max, out_min, out_max ) {
 
 
 handleSocketEvents();
+
+socket.emit( 'get-current-theme' );
+socket.emit( 'reset-game' );
