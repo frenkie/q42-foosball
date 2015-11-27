@@ -42,11 +42,16 @@ var soundPlaying;
 
 var goalSound = new buzz.sound( "sounds/goal1", { formats : ["wav"] } );
 var explosionLongSound = new buzz.sound( "sounds/explosion-long", { formats : ["wav"] } );
+var frenzySound = new buzz.sound( "sounds/frenzy", { formats : ["mp3"] } );
 
 var fussBallSounds = new buzz.group([goalSound,explosionLongSound]);
 
 fussBallSounds.bind( "ended", function ( e ) {
     soundPlaying = false;
+} );
+
+fussBallSounds.bind( "play", function ( e ) {
+    soundPlaying = true;
 } );
 
 
@@ -67,10 +72,19 @@ function handleSocketEvents () {
         frenzyTeam = undefined;
     } );
 
-    socket.on( 'frenzy', function ( team ) {
-        console.log( "get current theme ", theme );
+    socket.on( 'frenzy', function ( team, state ) {
 
-        frenzyTeam = team;
+        if ( team == 'left' ){
+            frenzyTeam = 1;
+        }
+
+        if ( team == 'right' ){
+            frenzyTeam = 0;
+        }
+
+        if ( !state ){
+            frenzyTeam = undefined;
+        }
     } );
 
     socket.on( 'get-current-theme', function ( theme ) {
@@ -213,8 +227,12 @@ var Frenzy = function ( owner ) {
     var ownerColor = teamColors[owner];
     overlayLayer.activate();
 
-    this.lifespan = 180;
+    this.lifespan = 280;
     this.frenzyTextGroup = [];
+
+    if (!soundPlaying){
+        frenzySound.play();
+    }
 
     for ( var i = 0; i < 20; i ++ ) {
         var text = new PointText( {
@@ -235,8 +253,7 @@ var Frenzy = function ( owner ) {
         text.opacity = 1;
         text.rotate( 60 );
         this.frenzyTextGroup.push( text );
-    }
-    ;
+    };
 
 };
 
@@ -394,7 +411,6 @@ Ball.prototype.iterate = function ( position ) {
     if ( speed.length > 30 && speed.length > this.preSpeed ) {
         if ( ! soundPlaying ) {
             explosionLongSound.play();
-            soundPlaying = true;
         }
     }
 
@@ -466,7 +482,7 @@ var Pitch = function () {
 
     this.centerLine = new Path( {
         strokeColor : "white",
-        strokeWidth : 5
+        strokeWidth : 7
     } );
 
     this.centerLine.add( new Point( size.width / 2, 0 ) );
@@ -477,7 +493,7 @@ var Pitch = function () {
         center : [size.width / 2, size.height / 2],
         size : [size.width / 4, size.width / 4],
         strokeColor : 'white',
-        strokeWidth : 5
+        strokeWidth : 7
     } );
 
     this.fieldLines.addChild( this.centerCircle );
@@ -486,7 +502,7 @@ var Pitch = function () {
         center : [0, size.height / 2],
         size : [size.height / 3, size.height / 3],
         strokeColor : 'white',
-        strokeWidth : 5
+        strokeWidth : 7
 
     } );
     this.fieldLines.addChild( this.goalLeft );
@@ -495,7 +511,7 @@ var Pitch = function () {
         center : [size.width, size.height / 2],
         size : [size.height / 3, size.height / 3],
         strokeColor : 'white',
-        strokeWidth : 5
+        strokeWidth : 7
     } );
 
     this.fieldLines.addChild( this.goalRight );
@@ -584,18 +600,20 @@ Goal.prototype.iterate = function () {
         this.backdrop.remove();
 
 
-        replayBalls.push( new ReplayBall() );
 
         if ( frenzyTeam ) {
             frenzy = new Frenzy( frenzyTeam );
+        }else{
+            replayBalls.push( new ReplayBall() );
         }
+
         goalEnd();
     }
 };
 
 var goalEnd = function(){
     goal = undefined;
-}
+};
 
 function GameGraphics () {
     this.score = [0, 0];

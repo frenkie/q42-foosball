@@ -161,36 +161,36 @@ GameEngine.prototype = {
         this.socket.emit('score-update', this.state.score );
     },
 
-    handleFrenzy: function(right) {
+    handleFrenzy: function( right ) {
 
-        if (right) {
-            //frenzy mode
+        if ( right && this.state.lastScorer == "right" ) {
+
             this.state.score.frenzy++;
-            if (this.state.score.frenzy >= this.frenzyThreshold){
-                this.state.score.frenzy = this.frenzyThreshold;
+            if ( this.state.score.frenzy >= this.frenzyThreshold ) {
                 this.socket.emit('frenzy', 'right', true);
                 console.log('frenzy right', true);
             }
-            //cancel frenzy on enemy site
-            else if (this.state.score.frenzy == -this.frenzyThreshold + 1){
-                this.socket.emit('frenzy', 'left', false);
-                console.log('frenzy left', false);
-            }
-        }
-        else {
-            //frenzy mode
-            this.state.score.frenzy--;
-            if (this.state.score.frenzy <= -this.frenzyThreshold) {
-                this.state.score.frenzy = -this.frenzyThreshold;
+
+        } else if ( !right && this.state.lastScorer == "left" ) {
+
+            this.state.score.frenzy++;
+            if (this.state.score.frenzy >= this.frenzyThreshold) {
                 this.socket.emit('frenzy', 'left', true);
                 console.log('frenzy left', true);
             }
-            //cancel frenzy on enemy site
-            else if (this.state.score.frenzy == this.frenzyThreshold - 1) {
-                this.socket.emit('frenzy', 'right', false);
-                console.log('frenzy right', false);
-            }
+
+        }else {
+            this.state.score.frenzy = 0;
+            this.socket.emit('frenzy', this.state.lastScorer, false);
+            console.log('frenzy '+ this.state.lastScorer, false);
         }
+
+        if ( right ){
+            this.state.lastScorer = "right";
+        }else{
+            this.state.lastScorer = "left";
+        }
+
     },
 
     handleTableBounds: function ( bounds ) {
