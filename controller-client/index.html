@@ -5,7 +5,10 @@
     <title>Foosball controller</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <script id="script-socket" src="http://10.42.38.114:9090/socket.io/socket.io.js"></script>
+    <script src="config.js"></script>
+    <script>
+        document.write('<script id="script-socket" src="http://'+ config.server.host +':'+ config.server.port +'/socket.io/socket.io.js"></'+'script>');
+    </script>
 </head>
 <body>
 <main>

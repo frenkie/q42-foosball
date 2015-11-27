@@ -1,0 +1,10 @@
+{
+  "server": {
+    "host": "localhost",
+    "port": 9090
+  },
+  "controller": {
+    "host": "localhost",
+    "port": 8085
+  }
+}
