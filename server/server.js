@@ -7,7 +7,7 @@ var app = express();
 var server = require('http').Server( app );
 var io = socketIo( server );
 
-var port = process.env.PORT || 4000;
+var port = process.env.PORT || 9090;
 
 var adminRouter = require('./routes/admin');
 var vendorRouter = require('./routes/vendor');
