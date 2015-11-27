@@ -7,6 +7,8 @@ var util = require('util');
 
 
 var GREEN = [0, 255, 0]; // B, G, R
+var RED = [0, 0, 255]; // B, G, R
+var BLUE = [255, 0, 0]; // B, G, R
 
 var TABLE_DIMENSIONS = { length: 120, height: 68 }; // in cm's
 var TABLE_BOUNDS; // when there is a cut out of the webcam
@@ -62,14 +64,13 @@ extend(CamTracker.prototype, {
                 radius: radius
             };
 
-            testIm.ellipse( center.x, center.y, radius * 2, radius * 2, GREEN );
-
             // translate center to physical position
             if ( TABLE_BOUNDS ) {
                 center.x = center.x + TABLE_BOUNDS.x;
                 center.y = center.y + TABLE_BOUNDS.y;
             }
 
+            testIm.ellipse( center.x, center.y, radius * 2, radius * 2, BLUE );
 
             center.x = Math.floor( ( center.x / testIm.width() ) * TABLE_DIMENSIONS.length );
             center.y = Math.floor( ( center.y / testIm.height() ) * TABLE_DIMENSIONS.height );
@@ -91,6 +92,14 @@ extend(CamTracker.prototype, {
         });
 
         return deferred.promise;
+    },
+
+    getTableBounds: function () {
+        return TABLE_BOUNDS;
+    },
+
+    getTableDimensions: function () {
+        return TABLE_DIMENSIONS;
     },
 
     resetBallThreshold: function () {
@@ -129,14 +138,17 @@ extend(CamTracker.prototype, {
             this.camera.read(function (err, im) {
 
                 var mask;
-                var big = new cv.Matrix( im.height(), im.width() );
+                var big;
                 var contours;
                 var centerPoint;
 
                 mask = im.copy();
 
                 if ( TABLE_BOUNDS ) {
-                    mask = mask.roi(TABLE_BOUNDS.x, TABLE_BOUNDS.y, TABLE_BOUNDS.width, TABLE_BOUNDS.height);
+                    mask = im.roi(TABLE_BOUNDS.x, TABLE_BOUNDS.y, TABLE_BOUNDS.width, TABLE_BOUNDS.height);
+                    big = new cv.Matrix( mask.height(), mask.width() )
+                } else {
+                    big = new cv.Matrix( im.height(), im.width() )
                 }
 
                 mask.convertHSVscale();
@@ -164,7 +176,7 @@ extend(CamTracker.prototype, {
 
                 im.convertHSVscale();
                 this.emit('frame', {buffer: im.toBuffer()});
-                this.emit('mask', {buffer: big.toBuffer()});
+                //this.emit('mask', {buffer: big.toBuffer(), width: big.width(), height: big.height()});
 
                 //this.frameCount++;
                 //console.log( this.frameCount / ( ( Date.now() - this.startTime ) / 1000 ) );

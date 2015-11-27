@@ -6,6 +6,15 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <style>
 
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
         #framegrabber, #maskgrabber {
             width: 320px;
             height: 180px;
@@ -49,11 +58,11 @@
 
                 <h2>Framegrabber</h2>
 
-                <canvas id="framegrabber"></canvas>
-                <canvas id="maskgrabber"></canvas>
+                <canvas id="framegrabber" class="noselect"></canvas>
+                <canvas id="maskgrabber" class="noselect"></canvas>
 
                 <h3>Ball threshold (select one and click on the screen)</h3>
-                <input type="radio" name="threshold" value="none" selected="selected">None
+                <input type="radio" name="threshold" value="none" checked="checked">None
                 <input type="radio" name="threshold" value="lower">Select Lower
                 <input type="radio" name="threshold" value="upper">Select Upper
                 <input type="radio" name="threshold" value="get">Get Value
@@ -113,9 +122,11 @@
         function getPositionOnCanvas( canvas, mouseEvent ) {
 
             var canvasBounds = canvas.getBoundingClientRect();
+            var posX = mouseEvent.clientX - Math.floor( canvasBounds.left );
+            var posY = mouseEvent.clientY - Math.floor( canvasBounds.top );
             return {
-                x: mouseEvent.pageX - canvasBounds.left,
-                y: mouseEvent.pageY - canvasBounds.top
+                x: posX,
+                y: posY
             };
         }
 
@@ -177,14 +188,18 @@
             var base64String = btoa(str);
 
             frameImg.onload = function () {
+                frameContext.clearRect( 0, 0, frameCanvas.width, frameCanvas.height );
                 frameContext.drawImage(this, 0, 0, frameCanvas.width, frameCanvas.height);
 
                 if ( TABLE_BOUNDS ) {
+                    frameContext.restore();
+                    frameContext.moveTo( 0, 0 );
                     frameContext.beginPath();
                     frameContext.lineWidth="2";
-                    frameContext.strokeStyle="red";
+                    frameContext.strokeStyle="#00FF00";
                     frameContext.rect( TABLE_BOUNDS.x, TABLE_BOUNDS.y, TABLE_BOUNDS.width, TABLE_BOUNDS.height);
                     frameContext.stroke();
+                    frameContext.save();
                 }
             };
             frameImg.src = 'data:image/png;base64,' + base64String;
@@ -200,6 +215,11 @@
             var str = String.fromCharCode.apply(null, uint8Arr);
             var base64String = btoa(str);
 
+            maskCanvas.width = data.width;
+            maskCanvas.style.width = data.width +'px';
+            maskCanvas.height = data.height;
+            maskCanvas.style.height = data.height +'px';
+
             maskImg.onload = function () {
                 maskContext.drawImage(this, 0, 0, maskCanvas.width, maskCanvas.height);
             };
@@ -211,7 +231,7 @@
         });
 
         socket.on('ball-positions', function ( positions ) {
-            console.log( positions.shift() );
+            //console.log( positions.shift() );
         });
 
         socket.on('score-update', function ( scores ) {
@@ -222,33 +242,39 @@
         /*****************************************************/
         // TRACKING ADMIN
 
-        $(frameCanvas).on('mousedown', function ( e ) {
+        $(document).on('mousedown', function ( e ) {
 
-            if ( $('[name="threshold"]:checked').val() === 'none' ) {
-                DRAGGING = true;
-                TABLE_DIMENSIONS = [getPositionOnCanvas(frameCanvas, e)];
+            console.log( e );
+            if ( $(e.target ).is('#framegrabber') ) {
+                if ( $('[name="threshold"]:checked').val() === 'none' ) {
+                    DRAGGING = true;
+                    TABLE_DIMENSIONS = [getPositionOnCanvas(frameCanvas, e)];
+                }
             }
         });
 
-        $(frameCanvas).on('mousemove', function ( e ) {
-            var pos = getPositionOnCanvas( frameCanvas, e );
-            if ( DRAGGING ) {
-                if (TABLE_DIMENSIONS.length === 1) {
-                    TABLE_DIMENSIONS.push(pos);
-                } else if ( TABLE_DIMENSIONS.length === 2 )  {
-                    TABLE_DIMENSIONS[1] = pos;
-                }
+        $(document).on('mousemove', function ( e ) {
 
-                if (TABLE_DIMENSIONS.length === 2) {
+            if ( $(e.target ).is('#framegrabber') && DRAGGING ) {
+                var pos = getPositionOnCanvas( frameCanvas, e );
+
+                if ( TABLE_DIMENSIONS.length === 1 ) {
+                    TABLE_DIMENSIONS.push( pos );
+                } else
+                    if ( TABLE_DIMENSIONS.length === 2 ) {
+                        TABLE_DIMENSIONS[ 1 ] = pos;
+                    }
+
+                if ( TABLE_DIMENSIONS.length === 2 ) {
                     TABLE_BOUNDS = getTableBounds();
                 }
             }
         });
 
-        $(frameCanvas).on('mouseup', function ( e ) {
-            var pos = getPositionOnCanvas( frameCanvas, e );
+        $(document).on('mouseup', function ( e ) {
 
-            if ( DRAGGING ) {
+            if ( $(e.target ).is('#framegrabber') && DRAGGING ) {
+                var pos = getPositionOnCanvas( frameCanvas, e );
                 DRAGGING = false;
                 if (TABLE_DIMENSIONS.length < 2) {
                     TABLE_DIMENSIONS.push(pos);
@@ -265,8 +291,21 @@
 
         $(frameCanvas).on('click', function (e) {
 
-            if ( $('[name="threshold"]:checked').val() === 'get' ) {
-                socket.emit('request-hsv', {x: e.offsetX, y: e.offsetY});
+            var clickMode = $('[name="threshold"]:checked').val();
+
+            switch ( clickMode ) {
+
+                case 'get':
+                    socket.emit('request-hsv', {x: e.offsetX, y: e.offsetY});
+                    break;
+
+                case 'lower':
+
+                    break;
+
+                case 'upper':
+
+                    break;
             }
         });
 

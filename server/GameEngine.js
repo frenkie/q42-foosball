@@ -35,7 +35,13 @@ GameEngine.prototype = {
 
         this.socket.on('connection', function ( client ) {
 
+            var stats;
+
             console.log('connected!');
+
+            // Gameplay
+            client.on('score-left', this.handleScoreLeft.bind( this ) );
+            client.on('score-right', this.handleScoreRight.bind( this ) );
 
             // Admin
             client.on('request-hsv', this.handleRequestHSV.bind( this ) );
@@ -54,7 +60,21 @@ GameEngine.prototype = {
             client.on('get-current-theme', this.handleGetCurrentTheme.bind( this ) );
             client.on('change-theme', this.handleChangeTheme.bind( this ) );
 
+          // Send stats
+            stats = {
+                state: this.state
+            };
 
+            if ( this.tracker ) {
+                stats.tableDimensions = this.tracker.getTableDimensions();
+
+                if ( this.tracker.getTableBounds() ) {
+                    stats.tableBounds = this.tracker.getTableBounds();
+                }
+            }
+
+            client.emit('stats', stats);            
+            
         }.bind( this ) );
 
     },
@@ -94,17 +114,24 @@ GameEngine.prototype = {
         this.state.score.left++;
         console.log('left scored: ' + this.state.score.left);
 
-        this.socket.emit('score-right', this.state.score );
+        this.socket.emit('score-left', this.state.score );
         this.socket.emit('score-update', this.state.score );
     },
-
 
     handleScoreRight: function () {
         this.state.score.right++;
         console.log('right scored: ' + this.state.score.right);
 
-        this.socket.emit('score-left', this.state.score);
+        this.socket.emit('score-right', this.state.score);
         this.socket.emit('score-update', this.state.score );
+    },
+
+    handleSetLowerBallThreshold: function () {
+
+    },
+
+    handleSetUpperBallThreshold: function () {
+
     },
 
     handleSubtractScoreLeft: function () {
@@ -146,7 +173,7 @@ GameEngine.prototype = {
             score: {
                 left: 0,
                 right: 0
-            },
+            }
         };
     },
 
@@ -165,7 +192,6 @@ GameEngine.prototype = {
         console.log('theme changed: ' + this.themes[index]);
         this.currentTheme = index;
     }
-
 };
 
 module.exports = GameEngine;
