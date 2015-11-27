@@ -1,4 +1,8 @@
-var Tracker = require('./trackers/CamTracker');
+
+var Tracker;
+if ( ! process.env.NOTRACK ) {
+    Tracker = require('./trackers/CamTracker')
+}
 
 /**
  * Server-side game engine implementation
@@ -12,12 +16,14 @@ var GameEngine = function ( socket ) {
     this.resetGame();
 
     this.socket = socket;
-    this.tracker = new Tracker();
 
     this.bindSocketEvents();
-    this.bindTrackerEvents();
 
-    this.tracker.start();
+    if ( Tracker ) {
+        this.tracker = new Tracker();
+        this.bindTrackerEvents();
+        this.tracker.start();
+    }
 };
 
 GameEngine.prototype = {
@@ -31,6 +37,7 @@ GameEngine.prototype = {
             // Admin
             client.on('request-hsv', this.handleRequestHSV.bind( this ) );
             client.on('table-bounds', this.handleTableBounds.bind( this ) );
+            client.on('ball-positions', this.handleBallPositions.bind( this ) );
 
             client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('score-right', this.handleScoreRight.bind( this ) );

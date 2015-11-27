@@ -89,10 +89,10 @@
         var DRAGGING = false;
 
         function sendCoords() {
-            socket.emit('ball-position', {
+            socket.emit('ball-positions', [{
                 x: parseFloat($('.coord-x').val()) || 0,
                 y: parseFloat($('.coord-y').val()) || 0
-            });
+            }]);
         }
 
         function getTableBounds () {
@@ -211,7 +211,7 @@
         });
 
         socket.on('ball-positions', function ( positions ) {
-            //console.log( positions.shift() );
+            console.log( positions.shift() );
         });
 
         socket.on('score-update', function ( scores ) {
