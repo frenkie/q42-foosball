@@ -39,8 +39,8 @@
                     <hr/>
 
 
-                    <button class="score-left">Score Left</button>
-                    <button class="score-right">Score Right</button>
+                    <button class="score-left">Score Left ( S key )</button>
+                    <button class="score-right">Score Right ( D key )</button>
                     <div class="score"></div>
 
                 </div>
@@ -88,27 +88,6 @@
         var TABLE_BOUNDS;
         var DRAGGING = false;
 
-
-        $('button:not(.coordinates)').each(function () {
-
-            var $button = $(this);
-
-            $button.click(sendEvent);
-
-            function sendEvent() {
-                socket.emit($button[0].className, $button[0].className);
-            }
-        });
-
-
-        $('.coordinates').click(sendCoords);
-        $(document).keydown(function (e) {
-            if (e.keyCode == 13) {
-                sendCoords();
-            }
-        });
-
-
         function sendCoords() {
             socket.emit('ball-position', {
                 x: parseFloat($('.coord-x').val()) || 0,
@@ -139,6 +118,53 @@
                 y: mouseEvent.pageY - canvasBounds.top
             };
         }
+
+        /************************************************/
+        // ADMIN BUTTONS
+
+        $('button:not(.coordinates)').each(function () {
+
+            var $button = $(this);
+
+            $button.click(sendEvent);
+
+            function sendEvent() {
+                socket.emit($button[0].className, $button[0].className);
+            }
+        });
+
+
+        $('.coordinates').click(sendCoords);
+        $(document).keydown(function (e) {
+            if (e.keyCode == 13) {
+                sendCoords();
+            }
+        });
+
+        $(document).keydown(function( e ){
+
+            console.log( e.keyCode );
+
+            switch ( e.keyCode ) {
+
+                case 65:
+                    // D-Key
+                    socket.emit('score-right');
+                    break;
+
+                case 83:
+                    // S-key
+                    socket.emit('score-left');
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+        /************************************************/
+        // TRACKING
+
 
         // show loading notice
         frameContext.fillStyle = '#333';
@@ -185,7 +211,7 @@
         });
 
         socket.on('ball-positions', function ( positions ) {
-            console.log( positions.shift() );
+            //console.log( positions.shift() );
         });
 
         socket.on('score-update', function ( scores ) {
@@ -193,6 +219,8 @@
             $('.score' ).text( scores.left +':'+ scores.right );
         });
 
+        /*****************************************************/
+        // TRACKING ADMIN
 
         $(frameCanvas).on('mousedown', function ( e ) {
 
@@ -241,6 +269,7 @@
                 socket.emit('request-hsv', {x: e.offsetX, y: e.offsetY});
             }
         });
+
     });
 
 </script>
