@@ -176,7 +176,7 @@ GameEngine.prototype = {
             this.state.score.frenzy++;
             if (this.state.score.frenzy >= this.frenzyThreshold) {
                 this.socket.emit('frenzy', 'left', true);
-                console.log('frenzy left', true);
+                console.log('frenzy left ', true);
             }
 
         }else {
