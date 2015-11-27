@@ -141,13 +141,13 @@
             }
         });
 
-        $(document).keydown(function( e ){
+        $(document).keyup(function( e ){
 
             console.log( e.keyCode );
 
             switch ( e.keyCode ) {
 
-                case 65:
+                case 68:
                     // D-Key
                     socket.emit('score-right');
                     break;
