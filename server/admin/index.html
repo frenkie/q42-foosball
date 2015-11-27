@@ -1,81 +1,245 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Q42 Foosbll server test</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    </head>
-    <body>
+<head>
+    <title>Q42 Foosbll server test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <style>
 
-        <div id="app">
-            <div class="container">
-                <div class="row">
-                    <h1 class="page-header">
-                        Game Admin.
-                    </h1>
+        #framegrabber, #maskgrabber {
+            width: 320px;
+            height: 180px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="container">
+        <div class="row">
+            <h1 class="page-header">
+                Game Admin.
+            </h1>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+
+                <div class="commandos">
 
                     <p>Pass on commands to the game as if you were a client</p>
 
-                    <div class="commandos">
+                    <h3>Send coordinates</h3>
+                    <input class="coord coord-x" type="text" style="width: 50px;" value="1">
+                    <input class="coord coord-y" type="text" style="width: 50px;" value="1">
 
+                    <button class="coordinates">send</button>
+                    <br/><br/>
+                    <hr/>
 
-                        <h2>Send coordinates</h2>
-                        <input class="coord coord-x" type="text" style="width: 50px;" value="1">
-                        <input class="coord coord-y" type="text" style="width: 50px;" value="1">
+                    <!--<button class="start">Start</button><br/><br/>-->
+                    <!--<button class="lost">Lost</button><br/><br/>-->
+                    <!--<button class="won">Won</button><br/><br/>-->
+                    <!--<button class="reset">Reset</button><br/><br/>-->
 
-                        <button class="coordinates">send</button><br/><br/>
-                        <hr/>
+                </div>
+            </div>
+            <div class="col-sm-6">
 
-                        <!--<button class="start">Start</button><br/><br/>-->
-                        <!--<button class="lost">Lost</button><br/><br/>-->
-                        <!--<button class="won">Won</button><br/><br/>-->
-                        <!--<button class="reset">Reset</button><br/><br/>-->
+                <h2>Framegrabber</h2>
 
-                    </div>
+                <canvas id="framegrabber"></canvas>
+                <canvas id="maskgrabber"></canvas>
+
+                <h3>Ball threshold (select one and click on the screen)</h3>
+                <input type="radio" name="threshold" value="none" selected="selected">None
+                <input type="radio" name="threshold" value="lower">Select Lower
+                <input type="radio" name="threshold" value="upper">Select Upper
+                <input type="radio" name="threshold" value="get">Get Value
+                <br/>
+                <button>Reset threshold</button>
+
+                <hr>
+                <h3>Frame info</h3>
+
+                <div class="meta">
+
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <script src="/node_modules/jquery/dist/jquery.min.js"></script>
-        <script src="/socket.io/socket.io.js"></script>
-        <script>
+<script src="/vendor/jquery/dist/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
 
-            $(function () {
+    $(function () {
 
-                var dl = document.location;
-                var socketServer = dl.origin;
+        var frameCanvas = document.getElementById('framegrabber');
+        var frameContext = frameCanvas.getContext('2d');
+        var frameImg = new Image();
 
-                var socket = io( socketServer );
+        var maskCanvas = document.getElementById('maskgrabber');
+        var maskContext = maskCanvas.getContext('2d');
+        var maskImg = new Image();
 
-                $('button:not(.coordinates)' ).each(function () {
+        var dl = document.location;
 
-                    var $button = $(this);
+        var socketServer = dl.origin;
+        var socket = io(socketServer);
 
-                    $button.click(sendEvent);
-
-                    function sendEvent() {
-                        socket.emit( $button[0].className, $button[0].className );
-                    };
-
-                });
-
-
-                $('.coordinates').click(sendCoords);
-                $(document).keydown(function(e) {
-                    if(e.keyCode == 13){
-                        sendCoords();
-                    }
-                });
+        var TABLE_DIMENSIONS = [];
+        var TABLE_BOUNDS;
+        var DRAGGING = false;
 
 
-                function sendCoords() {
-                    socket.emit( 'ball-position', {
-                        x: parseFloat( $('.coord-x').val() ) || 0,
-                        y: parseFloat( $('.coord-y').val() ) || 0
-                    } );
-                };
+        $('button:not(.coordinates)').each(function () {
+
+            var $button = $(this);
+
+            $button.click(sendEvent);
+
+            function sendEvent() {
+                socket.emit($button[0].className, $button[0].className);
+            };
+
+        });
+
+
+        $('.coordinates').click(sendCoords);
+        $(document).keydown(function (e) {
+            if (e.keyCode == 13) {
+                sendCoords();
+            }
+        });
+
+
+        function sendCoords() {
+            socket.emit('ball-position', {
+                x: parseFloat($('.coord-x').val()) || 0,
+                y: parseFloat($('.coord-y').val()) || 0
             });
+        }
 
-        </script>
-    </body>
+        function getTableBounds () {
+            var bounds = {};
+        
+            bounds['x'] = Math.min(TABLE_DIMENSIONS[0].x, TABLE_DIMENSIONS[1].x);
+            bounds['xMax'] = Math.max(TABLE_DIMENSIONS[0].x, TABLE_DIMENSIONS[1].x);
+        
+            bounds['y'] = Math.min(TABLE_DIMENSIONS[0].y, TABLE_DIMENSIONS[1].y);
+            bounds['yMax'] = Math.max(TABLE_DIMENSIONS[0].y, TABLE_DIMENSIONS[1].y);
+        
+            bounds['width'] = bounds['xMax'] - bounds['x'];
+            bounds['height'] = bounds['yMax'] - bounds['y'];
+        
+            return bounds;
+        }
+
+        function getPositionOnCanvas( canvas, mouseEvent ) {
+
+            var canvasBounds = canvas.getBoundingClientRect();
+            return {
+                x: mouseEvent.pageX - canvasBounds.left,
+                y: mouseEvent.pageY - canvasBounds.top
+            };
+        }
+
+        // show loading notice
+        frameContext.fillStyle = '#333';
+        frameContext.fillText('Loading...', frameCanvas.width / 2 - 30, frameCanvas.height / 3);
+
+        socket.on('frame', function (data) {
+            // Reference: http://stackoverflow.com/questions/24107378/socket-io-began-to-support-binary-stream-from-1-0-is-there-a-complete-example-e/24124966#24124966
+            var uint8Arr = new Uint8Array(data.buffer);
+            var str = String.fromCharCode.apply(null, uint8Arr);
+            var base64String = btoa(str);
+
+            frameImg.onload = function () {
+                frameContext.drawImage(this, 0, 0, frameCanvas.width, frameCanvas.height);
+
+                if ( TABLE_BOUNDS ) {
+                    frameContext.beginPath();
+                    frameContext.lineWidth="2";
+                    frameContext.strokeStyle="red";
+                    frameContext.rect( TABLE_BOUNDS.x, TABLE_BOUNDS.y, TABLE_BOUNDS.width, TABLE_BOUNDS.height);
+                    frameContext.stroke();
+                }
+            };
+            frameImg.src = 'data:image/png;base64,' + base64String;
+        });
+
+        // show loading notice
+        maskContext.fillStyle = '#333';
+        maskContext.fillText('Loading...', maskCanvas.width / 2 - 30, maskCanvas.height / 3);
+
+        socket.on('mask', function (data) {
+            // Reference: http://stackoverflow.com/questions/24107378/socket-io-began-to-support-binary-stream-from-1-0-is-there-a-complete-example-e/24124966#24124966
+            var uint8Arr = new Uint8Array(data.buffer);
+            var str = String.fromCharCode.apply(null, uint8Arr);
+            var base64String = btoa(str);
+
+            maskImg.onload = function () {
+                maskContext.drawImage(this, 0, 0, maskCanvas.width, maskCanvas.height);
+            };
+            maskImg.src = 'data:image/png;base64,' + base64String;
+        });
+
+        socket.on('get-hsv', function (hsv) {
+            $('.meta').html(hsv.join(', '));
+        });
+
+        socket.on('ball-positions', function ( positions ) {
+            console.log( positions.shift() );
+        });
+
+        $(frameCanvas).on('mousedown', function ( e ) {
+
+            DRAGGING = true;
+            TABLE_DIMENSIONS = [ getPositionOnCanvas( frameCanvas, e ) ];
+        });
+
+        $(frameCanvas).on('mousemove', function ( e ) {
+            var pos = getPositionOnCanvas( frameCanvas, e );
+            if ( DRAGGING ) {
+                if (TABLE_DIMENSIONS.length === 1) {
+                    TABLE_DIMENSIONS.push(pos);
+                } else if ( TABLE_DIMENSIONS.length === 2 )  {
+                    TABLE_DIMENSIONS[1] = pos;
+                }
+
+                if (TABLE_DIMENSIONS.length === 2) {
+                    TABLE_BOUNDS = getTableBounds();
+                }
+            }
+        });
+
+        $(frameCanvas).on('mouseup', function ( e ) {
+            var pos = getPositionOnCanvas( frameCanvas, e );
+
+            DRAGGING = false;
+            if ( TABLE_DIMENSIONS.length < 2 ) {
+                TABLE_DIMENSIONS.push( pos );
+            } else {
+                TABLE_DIMENSIONS[1] = pos;
+            }
+
+            if ( TABLE_DIMENSIONS.length === 2 ) {
+                TABLE_BOUNDS = getTableBounds();
+                socket.emit('table-bounds', TABLE_BOUNDS );
+            }
+        });
+
+        $(frameCanvas).on('click', function (e) {
+
+            if ( $('[name="threshold"]:checked').val() === 'get' ) {
+                socket.emit('request-hsv', {x: e.offsetX, y: e.offsetY});
+            }
+        });
+    });
+
+</script>
+</body>
 </html>

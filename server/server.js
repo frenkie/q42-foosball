@@ -9,7 +9,11 @@ var io = socketIo( server );
 
 var port = process.env.PORT || 4000;
 
-app.use( express.static( __dirname ) );
+var adminRouter = require('./routes/admin');
+var vendorRouter = require('./routes/vendor');
+
+app.use( vendorRouter );
+app.use( adminRouter );
 
     // binding to 0.0.0.0 allows connections from any other computer in the network
     // to your ip address
