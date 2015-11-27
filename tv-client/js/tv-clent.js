@@ -11,9 +11,21 @@ var game;
 
 var size = view.size;
 
+var screenSize = {
+    x : 68,
+    y : 120
+};
+
 var mousePos;
 
 var hits = [];
+
+var socket = io("http://10.42.38.110:9090");
+var currentPos;
+socket.on('ball-positions', function ( positions ) {
+    //console.log( positions.shift() );
+    currentPos = positions.shift();
+});
 
 var Hit = function ( posX, posY ) {
 
@@ -101,8 +113,12 @@ var Ball = function () {
 
 };
 
-Ball.prototype.iterate = function (  ) {
+Ball.prototype.iterate = function ( position  ) {
 
+    console.log(position);
+
+    this.item.position.x = position.x / screenSize.x * size.width;
+    this.item.position.y = position.y / screenSize.y * size.height;
 
     if ( 0 > (this.item.position.x - this.radius / 2) ) {
         if ( this.allowNewHit ) {
@@ -134,9 +150,12 @@ Ball.prototype.iterate = function (  ) {
 
         if ( this.still ) {
             this.still.remove();
-            this.still2.remove();
             this.still = undefined;
             this.stillCounter = 0;
+
+            if (this.still2){
+                this.still2.remove();
+            }
         }
 
         var newPosX = Math.floor( Math.random() * ((this.item.pre.x - this.item.position.x) + 1) + this.item.position.x );
@@ -196,11 +215,11 @@ Ball.prototype.iterate = function (  ) {
     //The vector is the difference between the position of
     //the text item and the destination point:
 
-    var vector = this.destination - this.item.position;
-    this.item.position += vector / 50;
-    if ( vector.length < 5 ) {
-        this.destination = Point.random() * view.size;
-    }
+    //var vector = this.destination - this.item.position;
+    //this.item.position += vector / 50;
+    //if ( vector.length < 5 ) {
+    //    this.destination = Point.random() * view.size;
+    //}
 
 
     //this.item.position = mousePos;
@@ -321,7 +340,6 @@ function onKeyUp ( event ) {
 
 function onFrame ( event ) {
 
-
     for ( var i = 0; i < hits.length; i ++ ) {
         hits[i].iterate();
     }
@@ -330,8 +348,8 @@ function onFrame ( event ) {
         trailBalls[y].iterate();
     }
 
-    if (ball){
-        ball.iterate( );
+    if (ball && currentPos ){
+        ball.iterate( currentPos );
     }
 
 }
@@ -340,15 +358,6 @@ function onFrame ( event ) {
 function onMouseMove ( event ) {
     mousePos = event.point;
 }
-
-
-var socket = io("http://10.42.38.110:4000");
-
-socket.on('ball-positions', function ( positions ) {
-    console.log( positions.shift() );
-});
-
-
 
 // UTILS
 //function lineDistance ( point1x, point1y, point2x, point2y ) {
