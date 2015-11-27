@@ -8,8 +8,6 @@ var MAIN = (function () {
     var
         socket = null;
 
-
-
     // initialize
     function init(){
         console.log(socket);
@@ -20,6 +18,8 @@ var MAIN = (function () {
         $('#btn-reset-game').on('click', resetGame);
         $('#btn-score-left').on('click', scoreLeft);
         $('#btn-score-right').on('click', scoreRight);
+        $('#btn-subtract-score-left').on('click', subtractScoreLeft);
+        $('#btn-subtract-score-right').on('click', subtractScoreRight);
     }
 
     init ();
@@ -35,6 +35,14 @@ var MAIN = (function () {
 
     function scoreRight(){
         socket.emit('score-right');
+    }
+
+    function subtractScoreLeft(){
+        socket.emit('subtract-score-left');
+    }
+
+    function subtractScoreRight(){
+        socket.emit('subtract-score-right');
     }
 
     function resetGame(){
