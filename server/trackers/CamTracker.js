@@ -1,4 +1,4 @@
-var ballColor = require('./ballColors').garlando;
+var ballColor = require('./ballColors').speedball;
 var EventEmitter = require('events').EventEmitter;
 var extend = require('extend');
 var cv = require('opencv');
@@ -8,7 +8,7 @@ var util = require('util');
 
 var GREEN = [0, 255, 0]; // B, G, R
 
-var TABLE_DIMENSIONS = { length: 150, height: 75 }; // in cm's
+var TABLE_DIMENSIONS = { length: 120, height: 68 }; // in cm's
 var TABLE_BOUNDS; // when there is a cut out of the webcam
 
 
@@ -163,7 +163,7 @@ extend(CamTracker.prototype, {
                 big.drawAllContours(contours, GREEN);
 
                 this.emit('frame', {buffer: im.toBuffer()});
-                this.emit('mask', {buffer: mask.toBuffer()});
+                this.emit('mask', {buffer: big.toBuffer()});
 
                 //this.frameCount++;
                 //console.log( this.frameCount / ( ( Date.now() - this.startTime ) / 1000 ) );

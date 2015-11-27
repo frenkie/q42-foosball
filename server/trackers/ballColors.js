@@ -19,8 +19,8 @@ exports.garlando = {
 };
 
 exports.speedball = {
-	lower:[ 25, 100, 80 ],
-	upper: [ 35, 240, 230 ]
+	lower:[ 29, 145, 192 ],
+	upper: [ 40, 215, 255 ]
 };
 
 exports.tornado = {
