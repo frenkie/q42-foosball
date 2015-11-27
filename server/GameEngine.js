@@ -8,6 +8,9 @@ var Tracker = require('./trackers/CamTracker');
 
 var GameEngine = function ( socket ) {
 
+
+    this.resetGame();
+
     this.socket = socket;
     this.tracker = new Tracker();
 
@@ -28,6 +31,9 @@ GameEngine.prototype = {
             // Admin
             client.on('request-hsv', this.handleRequestHSV.bind( this ) );
             client.on('table-bounds', this.handleTableBounds.bind( this ) );
+
+            client.on('score-red', this.handleScoreRed.bind( this ) );
+            client.on('score-blue', this.handleScoreBlue.bind( this ) );
 
         }.bind( this ) );
 
@@ -50,7 +56,10 @@ GameEngine.prototype = {
     },
 
     handleBallPositions : function ( data ) {
-        console.log( 'ball-positions', data );
+        //console.log( 'ball-positions', data );
+
+        this.state.positions = data;
+
         this.socket.emit( 'ball-positions', data );
     },
 
@@ -61,14 +70,34 @@ GameEngine.prototype = {
         }.bind( this ) );
     },
 
-    handleScored : function () {
-        console.log( 'scored', data );
-        this.socket.emit( 'scored' );
+    handleScoreBlue: function () {
+
+        console.log('blue scored');
+        this.state.score.blue++;
+
+        this.socket.emit('score-update', this.state.score );
+    },
+
+    handleScoreRed: function () {
+        console.log('red scored');
+        this.state.score.red++;
+
+        this.socket.emit('score-update', this.state.score );
     },
 
     handleTableBounds: function ( bounds ) {
         console.log('bounds');
         this.tracker.setTableBounds( bounds );
+    },
+
+    resetGame: function () {
+        this.state = {
+            positions: [],
+            score: {
+                red: 0,
+                blue: 0
+            }
+        };
     }
 };
 

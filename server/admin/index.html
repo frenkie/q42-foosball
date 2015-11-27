@@ -38,10 +38,10 @@
                     <br/><br/>
                     <hr/>
 
-                    <!--<button class="start">Start</button><br/><br/>-->
-                    <!--<button class="lost">Lost</button><br/><br/>-->
-                    <!--<button class="won">Won</button><br/><br/>-->
-                    <!--<button class="reset">Reset</button><br/><br/>-->
+
+                    <button class="score-red">Score Red</button>
+                    <button class="score-blue">Score Blue</button>
+                    <div class="score"></div>
 
                 </div>
             </div>
@@ -59,13 +59,7 @@
                 <input type="radio" name="threshold" value="get">Get Value
                 <br/>
                 <button>Reset threshold</button>
-
-                <hr>
-                <h3>Frame info</h3>
-
-                <div class="meta">
-
-                </div>
+                <div class="meta"></div>
             </div>
         </div>
     </div>
@@ -103,8 +97,7 @@
 
             function sendEvent() {
                 socket.emit($button[0].className, $button[0].className);
-            };
-
+            }
         });
 
 
@@ -194,6 +187,12 @@
         socket.on('ball-positions', function ( positions ) {
             console.log( positions.shift() );
         });
+
+        socket.on('score-update', function ( scores ) {
+            console.log('score update!');
+            $('.score' ).text( scores.red +':'+ scores.blue );
+        });
+
 
         $(frameCanvas).on('mousedown', function ( e ) {
 
