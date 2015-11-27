@@ -197,8 +197,10 @@
 
         $(frameCanvas).on('mousedown', function ( e ) {
 
-            DRAGGING = true;
-            TABLE_DIMENSIONS = [ getPositionOnCanvas( frameCanvas, e ) ];
+            if ( $('[name="threshold"]:checked').val() === 'none' ) {
+                DRAGGING = true;
+                TABLE_DIMENSIONS = [getPositionOnCanvas(frameCanvas, e)];
+            }
         });
 
         $(frameCanvas).on('mousemove', function ( e ) {
@@ -219,16 +221,18 @@
         $(frameCanvas).on('mouseup', function ( e ) {
             var pos = getPositionOnCanvas( frameCanvas, e );
 
-            DRAGGING = false;
-            if ( TABLE_DIMENSIONS.length < 2 ) {
-                TABLE_DIMENSIONS.push( pos );
-            } else {
-                TABLE_DIMENSIONS[1] = pos;
-            }
+            if ( DRAGGING ) {
+                DRAGGING = false;
+                if (TABLE_DIMENSIONS.length < 2) {
+                    TABLE_DIMENSIONS.push(pos);
+                } else {
+                    TABLE_DIMENSIONS[1] = pos;
+                }
 
-            if ( TABLE_DIMENSIONS.length === 2 ) {
-                TABLE_BOUNDS = getTableBounds();
-                socket.emit('table-bounds', TABLE_BOUNDS );
+                if (TABLE_DIMENSIONS.length === 2) {
+                    TABLE_BOUNDS = getTableBounds();
+                    socket.emit('table-bounds', TABLE_BOUNDS);
+                }
             }
         });
 

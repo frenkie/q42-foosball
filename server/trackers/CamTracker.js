@@ -1,4 +1,4 @@
-var ballColor = require('./ballColors').garlando;
+var ballColor = require('./ballColors').speedball;
 var EventEmitter = require('events').EventEmitter;
 var extend = require('extend');
 var cv = require('opencv');
@@ -163,7 +163,7 @@ extend(CamTracker.prototype, {
                 big.drawAllContours(contours, GREEN);
 
                 this.emit('frame', {buffer: im.toBuffer()});
-                this.emit('mask', {buffer: mask.toBuffer()});
+                this.emit('mask', {buffer: big.toBuffer()});
 
                 //this.frameCount++;
                 //console.log( this.frameCount / ( ( Date.now() - this.startTime ) / 1000 ) );
