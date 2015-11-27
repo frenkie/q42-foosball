@@ -89,7 +89,7 @@ or
 After that enter your table dimensions and press Save. With your mouse,
 draw a rectangle on the screen which will represent your foosball table.
 When a ball is tracked in between this rectangle you'll see it's position
-being output on screen.
+being output on screen. 
 			
 			
 			
