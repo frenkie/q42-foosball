@@ -13,6 +13,11 @@ exports.pingpong = {
 	upper: [ 105, 120, 240 ]
 };
 
+exports.pingpongOrange = {
+	lower:[ 19, 175, 180 ],
+	upper: [ 25, 255, 255 ]
+};
+
 exports.garlando = {
 	lower:[ 18, 255, 180 ],
 	upper: [ 25, 255, 255 ]

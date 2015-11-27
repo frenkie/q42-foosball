@@ -1,4 +1,4 @@
-var ballColor = require('./ballColors').speedball;
+var ballColor = require('./ballColors').pingpongOrange;
 var EventEmitter = require('events').EventEmitter;
 var extend = require('extend');
 var cv = require('opencv');
@@ -162,6 +162,7 @@ extend(CamTracker.prototype, {
                 // TODO if TABLE_BOUNDS is set, big image should have different size...
                 big.drawAllContours(contours, GREEN);
 
+                im.convertHSVscale();
                 this.emit('frame', {buffer: im.toBuffer()});
                 this.emit('mask', {buffer: big.toBuffer()});
 
