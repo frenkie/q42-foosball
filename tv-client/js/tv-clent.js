@@ -1,4 +1,5 @@
 var backgroundLayer = project.activeLayer;
+var fieldLayer = new Layer();
 var hitLayer = new Layer();
 var trailBallLayer = new Layer();
 var ballLayer = new Layer();
@@ -8,6 +9,7 @@ var scoreLayer = new Layer();
 var ball;
 var background;
 var game;
+//var goals;
 
 var size = view.size;
 
@@ -22,10 +24,22 @@ var hits = [];
 
 var socket = io("http://10.42.38.110:9090");
 var currentPos;
+
 socket.on('ball-positions', function ( positions ) {
-    //console.log( positions.shift() );
+    console.log( positions.shift() );
     currentPos = positions.shift();
 });
+
+socket.on('score-left', function ( event ) {
+    console.log( event );
+    game.goalScored( 0 );
+});
+
+socket.on('score-right', function ( event ) {
+    console.log( event );
+    game.goalScored( 1 );
+});
+
 
 var Hit = function ( posX, posY ) {
 
@@ -115,7 +129,7 @@ var Ball = function () {
 
 Ball.prototype.iterate = function ( position  ) {
 
-    console.log(position);
+    //console.log(position);
 
     this.item.position.x = position.x / screenSize.x * size.width;
     this.item.position.y = position.y / screenSize.y * size.height;
@@ -234,80 +248,143 @@ var Background = function () {
 
     $( this.backgroundPrefix + 1 ).addClass( 'show' );
 
+    fieldLayer.activate();
 
-    //this.fieldLine =
+    this.fieldLines = new Group();
+
+
+    this.centerLine = new Path({
+        strokeColor : 'white',
+        strokeWidth : 5
+    });
+
+    this.centerLine.add( new Point( size.width / 2, 0 ) );
+    this.centerLine.add( new Point( size.width / 2, size.height ) );
+    this.fieldLines.addChild( this.centerLine );
+
+    this.centerCircle = new Shape.Ellipse( {
+        center : [size.width/ 2 , size.height/2],
+        size : [ size.width/4, size.width/4 ],
+        strokeColor : 'white',
+        strokeWidth : 5
+    } );
+
+    this.fieldLines.addChild( this.centerCircle );
+
+    this.goalLeft  =  new Shape.Rectangle({
+        center : [0, size.height/2],
+        size : [size.height/3, size.height/3],
+        strokeColor: 'white',
+        strokeWidth: 5
+
+    });
+    this.fieldLines.addChild( this.goalLeft );
+
+    this.goalRight  =  new Shape.Rectangle({
+        center : [size.width, size.height/2],
+        size : [size.height/3, size.height/3],
+        strokeColor: 'white',
+        strokeWidth: 5
+    });
+
+    this.fieldLines.addChild( this.goalRight );
+
+
+
 
 };
 
 Background.prototype.change = function ( index ) {
 
     $( '.show' ).removeClass( 'show' );
+    backgroundLayer.activate();
 
     if ( index == 0 ) {
-        $( this.backgroundPrefix + index ).addClass( 'show' );
-    } else if ( index == 1 ) {
+        this.fieldLines.strokeColor = 'white';
+        if (this.backdrop){
+            this.backdrop.remove();
+        }
         $( this.backgroundPrefix + index ).addClass( 'show' );
 
+    } else if ( index == 1 ) {
+        this.fieldLines.strokeColor = 'white';
+
+        if (this.backdrop){
+            this.backdrop.remove();
+        }
+        $( this.backgroundPrefix + index ).addClass( 'show' );
+
+    }else if ( index == 2 ) {
+
+        this.fieldLines.strokeColor = 'blue';
+
+        this.backdrop  =  new Shape.Rectangle({
+            center : [size.width/2, size.height/2],
+            size : [size.width, size.height],
+            fillColor: 'black'
+        });
     }
+};
+
+function Goal(team) {
+
+    this.lifespan = 60;
+
+    overlayLayer.activate();
+
+    if ( team == 0 ) {
+        this.item = new Shape.Ellipse( {
+            center : [0, size.height / 2],
+            size : [200, 200],
+            fillColor : 'red'
+        } );
+    } else if ( team == 1 ) {
+        this.item = new Shape.Ellipse( {
+            center : [size.width, size.height / 2],
+            size : [200, 200],
+            fillColor : 'red'
+        } );
+    }
+
+}
+
+Goal.prototype.iterate = function() {
+
+        if ( this.lifespan == 0 ) {
+            this.item.remove();
+            var i = game.goals.indexOf( this );
+            game.goals.splice( i, 1 );
+        }
+        this.lifespan --;
 };
 
 
 function GameGraphics () {
-    this.goals = [];
     this.score = [0, 0];
+    this.goals =[];
 
     scoreLayer.activate();
 
-    this.scoreText = new PointText( {
-        point : view.center,
-        justification : 'center',
-        fontSize : 100,
-        fillColor : 'black'
-    } );
-
-    this.scoreText.content = this.score[0] + " : " + this.score[1];
+    //this.scoreText = new PointText( {
+    //    point : view.center,
+    //    justification : 'center',
+    //    fontSize : 100,
+    //    fillColor : 'black'
+    //} );
+    //
+    //this.scoreText.content = this.score[0] + " : " + this.score[1];
 
 };
 
 GameGraphics.prototype = {
 
-    goal : function ( team ) {
-
-        this.lifespan = 60;
-
-        overlayLayer.activate();
-
-        if ( team == 0 ) {
-            this.item = new Shape.Ellipse( {
-                center : [0, size.height / 2],
-                size : [200, 200],
-                fillColor : 'red'
-            } );
-        } else if ( team == 1 ) {
-            this.item = new Shape.Ellipse( {
-                center : [size.width, size.height / 2],
-                size : [200, 200],
-                fillColor : 'red'
-            } );
-        }
-
-        function iterate () {
-
-            if ( this.lifespan == 0 ) {
-                var i = trailBalls.indexOf( this );
-                trailBalls.splice( i, 1 );
-            }
-            this.lifespan --;
-        }
-    },
-
     goalScored : function ( team ) {
 
         this.score[team] = this.score[team] + 1;
 
-        this.goals.push( new this.goal( team ) );
+        this.goals.push( new Goal( team ) );
 
-        this.updateScore();
+        //this.updateScore();
     },
 
     updateScore : function () {
@@ -323,17 +400,20 @@ GameGraphics.prototype = {
 
 // Dummy events
 function onKeyUp ( event ) {
+    //if ( event.key == '1' ) {
+    //    game.goalScored( 0 );
+    //}
+    //if ( event.key == '2' ) {
+    //    game.goalScored( 1 );
+    //}
     if ( event.key == '1' ) {
-        game.goalScored( 0 );
-    }
-    if ( event.key == '2' ) {
-        game.goalScored( 1 );
-    }
-    if ( event.key == '3' ) {
         background.change( 0 );
     }
-    if ( event.key == '4' ) {
+    if ( event.key == '2' ) {
         background.change( 1 );
+    }
+    if ( event.key == '3' ) {
+        background.change( 2 );
     }
 }
 
@@ -347,6 +427,11 @@ function onFrame ( event ) {
     for ( var y = 0; y < trailBalls.length; y ++ ) {
         trailBalls[y].iterate();
     }
+
+    for ( var g = 0; g < game.goals.length; g ++ ) {
+        game.goals[g].iterate();
+    }
+
 
     if (ball && currentPos ){
         ball.iterate( currentPos );
@@ -377,5 +462,5 @@ function onMouseMove ( event ) {
 jQuery( document ).ready( function () {
     background = new Background();
     ball = new Ball();
-    //game = new GameGraphics();
+    game = new GameGraphics();
 });
