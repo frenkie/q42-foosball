@@ -42,6 +42,9 @@ GameEngine.prototype = {
             client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('score-right', this.handleScoreRight.bind( this ) );
 
+            client.on('reset-game', this.resetGame.bind( this ) );
+
+
         }.bind( this ) );
 
     },
@@ -78,17 +81,16 @@ GameEngine.prototype = {
     },
 
     handleScoreLeft: function () {
-
-        console.log('left scored');
         this.state.score.left++;
+        console.log('left scored: ' + this.state.score.left);
 
         this.socket.emit('score-right', this.state.score );
         this.socket.emit('score-update', this.state.score );
     },
 
     handleScoreRight: function () {
-        console.log('right scored');
         this.state.score.right++;
+        console.log('right scored: ' + this.state.score.right);
 
         this.socket.emit('score-left', this.state.score);
         this.socket.emit('score-update', this.state.score );
@@ -100,6 +102,7 @@ GameEngine.prototype = {
     },
 
     resetGame: function () {
+        console.log('reset game');
         this.state = {
             positions: [],
             score: {
