@@ -1,3 +1,11 @@
 {
-  "name": "q42-foosball-vr-client"
+  "name": "q42-foosball-vr-client",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node serve-client.js"
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "jquery": "^2.1.4"
+  }
 }

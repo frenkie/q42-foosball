@@ -32,3 +32,8 @@ exports.tornado = {
 	lower:[ 29, 86, 6 ],
 	upper: [ 35, 180, 230 ]
 };
+
+exports.fluor = {
+	lower:[ 1, 170, 150 ],
+	upper: [ 5, 225, 235 ]
+};
