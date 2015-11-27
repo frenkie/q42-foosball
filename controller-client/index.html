@@ -5,7 +5,7 @@
     <title>Foosball controller</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <script src="http://10.42.38.110:9090/socket.io/socket.io.js"></script>
+    <script id="script-socket" src="http://10.42.38.114:9090/socket.io/socket.io.js"></script>
 </head>
 <body>
 <main>
@@ -13,6 +13,16 @@
         <button type="button" id="btn-reset-game" class="btn btn-default btn-lg">
             <span class="glyphicon glyphicon-star"
                   aria-hidden="true"></span> Nieuw spel
+        </button>
+    </p>
+    <p>
+        <button type="button" id="btn-score-left" class="btn btn-default btn-lg">
+             Score left
+        </button>
+    </p>
+    <p>
+        <button type="button" id="btn-score-right" class="btn btn-default btn-lg">
+             Score right
         </button>
     </p>
     <p>
