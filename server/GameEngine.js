@@ -19,7 +19,7 @@ var GameEngine = function ( socket ) {
 
     this.bindSocketEvents();
 
-    this.themes = ['standaard', 'gras', 'woestijn'];
+    this.themes = ['default', 'Tron', 'grass'];
     this.currentTheme = 0;
 
     if ( Tracker ) {

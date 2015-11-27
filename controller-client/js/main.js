@@ -4,46 +4,51 @@
 var MAIN = (function () {
 
 
-    // global variables
+    // globals
     var
-        socket = null;
+        socket = null,
         $ddThemes = null;
+
 
     // initialize
     function init(){
         console.log(socket);
 
-        //dirty way of getting
+        // dirty way of getting server path without changing it twice
         socket = io($('#script-socket').attr('src').split('/socket.io')[0]);
-        //io("http://10.42.38.110:9090");
+
+        //button listeners
         $('#btn-reset-game').on('click', resetGame);
         $('#btn-score-left').on('click', scoreLeft);
         $('#btn-score-right').on('click', scoreRight);
         $('#btn-subtract-score-left').on('click', subtractScoreLeft);
         $('#btn-subtract-score-right').on('click', subtractScoreRight);
 
+        // init themes
         $ddThemes = $('#dd-change-theme');
         socket.emit('get-themes');
-        socket.emit('get-current-theme');
         $ddThemes.on('change', changeTheme);
     }
 
     init ();
 
-    //socket connection test
-    socket.on('ball-positions', function (positions) {
-        console.log( positions.shift() );
-    });
-
     socket.on('get-themes', function (themes) {
-        console.log( 'themes', themes);
-        //$ddThemes.val(theme);
+
+        $.each(themes, function(i) {
+           $ddThemes.append(
+                $('<option></option>').text(this).val(i)
+           );
+        });
+
+        // event listener created within this method cause of dependency
+        socket.on('get-current-theme', function (theme) {
+            console.log( 'theme:' + theme);
+            $ddThemes.val(theme);
+        });
+        socket.emit('get-current-theme');
+
     });
 
-    socket.on('get-current-theme', function (theme) {
-        console.log( 'theme:' + theme);
-        $ddThemes.val(theme);
-    });
 
     function scoreLeft(){
         socket.emit('score-left');
@@ -69,7 +74,6 @@ var MAIN = (function () {
     function changeTheme(){
         socket.emit('change-theme', this.value);
     }
-
 
 
     // public API
