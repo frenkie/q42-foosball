@@ -21,6 +21,7 @@ var GameEngine = function ( socket ) {
 
     this.themes = ['default', 'Tron', 'grass'];
     this.currentTheme = 0;
+    this.frenzyThreshold = 3;
 
     if ( Tracker ) {
         this.tracker = new Tracker();
@@ -116,6 +117,8 @@ GameEngine.prototype = {
 
         this.socket.emit('score-left', this.state.score );
         this.socket.emit('score-update', this.state.score );
+
+        this.handleFrenzy(false);
     },
 
     handleScoreRight: function () {
@@ -124,6 +127,8 @@ GameEngine.prototype = {
 
         this.socket.emit('score-right', this.state.score);
         this.socket.emit('score-update', this.state.score );
+
+        this.handleFrenzy(true);
     },
 
     handleSetLowerBallThreshold: function () {
@@ -156,6 +161,38 @@ GameEngine.prototype = {
         this.socket.emit('score-update', this.state.score );
     },
 
+    handleFrenzy: function(right) {
+
+        if (right) {
+            //frenzy mode
+            this.state.score.frenzy++;
+            if (this.state.score.frenzy >= this.frenzyThreshold){
+                this.state.score.frenzy = this.frenzyThreshold;
+                this.socket.emit('frenzy', 'right', true);
+                console.log('frenzy right', true);
+            }
+            //cancel frenzy on enemy site
+            else if (this.state.score.frenzy == -this.frenzyThreshold + 1){
+                this.socket.emit('frenzy', 'left', false);
+                console.log('frenzy left', false);
+            }
+        }
+        else {
+            //frenzy mode
+            this.state.score.frenzy--;
+            if (this.state.score.frenzy <= -this.frenzyThreshold) {
+                this.state.score.frenzy = -this.frenzyThreshold;
+                this.socket.emit('frenzy', 'left', true);
+                console.log('frenzy left', true);
+            }
+            //cancel frenzy on enemy site
+            else if (this.state.score.frenzy == this.frenzyThreshold - 1) {
+                this.socket.emit('frenzy', 'right', false);
+                console.log('frenzy right', false);
+            }
+        }
+    },
+
     handleTableBounds: function ( bounds ) {
         console.log('bounds');
         this.tracker.setTableBounds( bounds );
@@ -172,7 +209,8 @@ GameEngine.prototype = {
             positions: [],
             score: {
                 left: 0,
-                right: 0
+                right: 0,
+                frenzy: 0
             }
         };
     },
