@@ -32,8 +32,8 @@ GameEngine.prototype = {
             client.on('request-hsv', this.handleRequestHSV.bind( this ) );
             client.on('table-bounds', this.handleTableBounds.bind( this ) );
 
-            client.on('score-red', this.handleScoreRed.bind( this ) );
-            client.on('score-blue', this.handleScoreBlue.bind( this ) );
+            client.on('score-left', this.handleScoreLeft.bind( this ) );
+            client.on('score-right', this.handleScoreRight.bind( this ) );
 
         }.bind( this ) );
 
@@ -70,18 +70,20 @@ GameEngine.prototype = {
         }.bind( this ) );
     },
 
-    handleScoreBlue: function () {
+    handleScoreLeft: function () {
 
-        console.log('blue scored');
-        this.state.score.blue++;
+        console.log('left scored');
+        this.state.score.left++;
 
+        this.socket.emit('score-right', this.state.score );
         this.socket.emit('score-update', this.state.score );
     },
 
-    handleScoreRed: function () {
-        console.log('red scored');
-        this.state.score.red++;
+    handleScoreRight: function () {
+        console.log('right scored');
+        this.state.score.right++;
 
+        this.socket.emit('score-left', this.state.score);
         this.socket.emit('score-update', this.state.score );
     },
 
@@ -94,8 +96,8 @@ GameEngine.prototype = {
         this.state = {
             positions: [],
             score: {
-                red: 0,
-                blue: 0
+                left: 0,
+                right: 0
             }
         };
     }

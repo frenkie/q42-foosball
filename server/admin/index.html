@@ -39,8 +39,8 @@
                     <hr/>
 
 
-                    <button class="score-red">Score Red</button>
-                    <button class="score-blue">Score Blue</button>
+                    <button class="score-left">Score Left</button>
+                    <button class="score-right">Score Right</button>
                     <div class="score"></div>
 
                 </div>
@@ -190,7 +190,7 @@
 
         socket.on('score-update', function ( scores ) {
             console.log('score update!');
-            $('.score' ).text( scores.red +':'+ scores.blue );
+            $('.score' ).text( scores.left +':'+ scores.right );
         });
 
 
