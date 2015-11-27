@@ -44,14 +44,6 @@ GameEngine.prototype = {
             client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('score-right', this.handleScoreRight.bind( this ) );
 
-            // Admin
-            client.on('request-hsv', this.handleRequestHSV.bind( this ) );
-            client.on('table-bounds', this.handleTableBounds.bind( this ) );
-            client.on('ball-positions', this.handleBallPositions.bind( this ) );
-
-            client.on('score-left', this.handleScoreLeft.bind( this ) );
-            client.on('score-right', this.handleScoreRight.bind( this ) );
-
             client.on('subtract-score-left', this.handleSubtractScoreLeft.bind( this ) );
             client.on('subtract-score-right', this.handleSubtractScoreRight.bind( this ) );
 
@@ -60,6 +52,12 @@ GameEngine.prototype = {
             client.on('get-themes', this.handleGetThemes.bind( this ) );
             client.on('get-current-theme', this.handleGetCurrentTheme.bind( this ) );
             client.on('change-theme', this.handleChangeTheme.bind( this ) );
+
+            // Admin
+            client.on('request-hsv', this.handleRequestHSV.bind( this ) );
+            client.on('table-bounds', this.handleTableBounds.bind( this ) );
+            client.on('ball-positions', this.handleBallPositions.bind( this ) );
+
 
           // Send stats
             stats = {

@@ -1,4 +1,4 @@
-var ballColor = require('./ballColors').pingpongOrange;
+var ballColor = require('./ballColors').fluor;
 var EventEmitter = require('events').EventEmitter;
 var extend = require('extend');
 var cv = require('opencv');
@@ -176,7 +176,7 @@ extend(CamTracker.prototype, {
 
                 im.convertHSVscale();
                 this.emit('frame', {buffer: im.toBuffer()});
-                //this.emit('mask', {buffer: big.toBuffer(), width: big.width(), height: big.height()});
+                this.emit('mask', {buffer: big.toBuffer(), width: big.width(), height: big.height()});
 
                 //this.frameCount++;
                 //console.log( this.frameCount / ( ( Date.now() - this.startTime ) / 1000 ) );
