@@ -3,8 +3,8 @@ var fieldLayer = new Layer();
 var hitLayer = new Layer();
 var trailBallLayer = new Layer();
 var ballLayer = new Layer();
-var overlayLayer = new Layer();
 var scoreLayer = new Layer();
+var overlayLayer = new Layer();
 
 var ball;
 var background;
@@ -44,7 +44,7 @@ var goalSound = new buzz.sound( "sounds/goal1", { formats : ["wav"] } );
 var explosionLongSound = new buzz.sound( "sounds/explosion-long", { formats : ["wav"] } );
 var frenzySound = new buzz.sound( "sounds/frenzy", { formats : ["mp3"] } );
 
-var fussBallSounds = new buzz.group([goalSound,explosionLongSound]);
+var fussBallSounds = new buzz.group( [goalSound, explosionLongSound] );
 
 fussBallSounds.bind( "ended", function ( e ) {
     soundPlaying = false;
@@ -53,8 +53,6 @@ fussBallSounds.bind( "ended", function ( e ) {
 fussBallSounds.bind( "play", function ( e ) {
     soundPlaying = true;
 } );
-
-
 
 
 function handleSocketEvents () {
@@ -74,15 +72,15 @@ function handleSocketEvents () {
 
     socket.on( 'frenzy', function ( team, state ) {
 
-        if ( team == 'left' ){
+        if ( team == 'left' ) {
             frenzyTeam = 1;
         }
 
-        if ( team == 'right' ){
+        if ( team == 'right' ) {
             frenzyTeam = 0;
         }
 
-        if ( !state ){
+        if ( ! state ) {
             frenzyTeam = undefined;
         }
     } );
@@ -230,7 +228,7 @@ var Frenzy = function ( owner ) {
     this.lifespan = 280;
     this.frenzyTextGroup = [];
 
-    if (!soundPlaying){
+    if ( ! soundPlaying ) {
         frenzySound.play();
     }
 
@@ -253,7 +251,8 @@ var Frenzy = function ( owner ) {
         text.opacity = 1;
         text.rotate( 60 );
         this.frenzyTextGroup.push( text );
-    };
+    }
+    ;
 
 };
 
@@ -482,45 +481,142 @@ var Pitch = function () {
 
     this.centerLine = new Path( {
         strokeColor : "white",
-        strokeWidth : 7
+        strokeWidth : 7,
+        shadowColor : "white",
+        shadowBlur : 15,
+        shadowOffset : new Point( 0, 0 )
     } );
 
     this.centerLine.add( new Point( size.width / 2, 0 ) );
-    this.centerLine.add( new Point( size.width / 2, size.height ) );
+    this.centerLine.add( new Point( size.width / 2, 0 ) );
     this.fieldLines.addChild( this.centerLine );
 
     this.centerCircle = new Shape.Ellipse( {
         center : [size.width / 2, size.height / 2],
         size : [size.width / 4, size.width / 4],
         strokeColor : 'white',
-        strokeWidth : 7
+        strokeWidth : 7,
+        shadowColor : "white",
+        shadowBlur : 15,
+        shadowOffset : new Point( 0, 0 )
     } );
+    this.centerCircle.scale(0.1);
+    this.centreScale = 0.1;
 
     this.fieldLines.addChild( this.centerCircle );
 
-    this.goalLeft = new Shape.Rectangle( {
-        center : [0, size.height / 2],
-        size : [size.height / 3, size.height / 3],
-        strokeColor : 'white',
-        strokeWidth : 7
+    //this.goalLeft = new Shape.Rectangle( {
+    //    center : [0, size.height / 2],
+    //    size : [size.height / 3, size.height / 3],
+    //    strokeColor : 'white',
+    //    strokeWidth : 7,
+    //    shadowColor : "white",
+    //    shadowBlur : 15,
+    //    shadowOffset : new Point( 0, 0 )
+    //
+    //} );
+    //this.fieldLines.addChild( this.goalLeft );
 
+    //this.goalRight = new Shape.Rectangle( {
+    //    center : [size.width, size.height / 2],
+    //    size : [size.height / 3, size.height / 3],
+    //    strokeColor : 'white',
+    //    strokeWidth : 7,
+    //    shadowColor : "white",
+    //    shadowBlur : 15,
+    //    shadowOffset : new Point( 0, 0 )
+    //
+    //} );
+    //
+    //this.fieldLines.addChild( this.goalRight );
+
+    this.goalRight = new Path( {
+        strokeColor : "white",
+        strokeWidth : 7,
+        shadowColor: "white",
+        shadowBlur: 15,
+        shadowOffset: new Point(0, 0)
     } );
+
+    this.goalRight.add( new Point( size.width, size.height / 3 ) );
+    this.goalRight.add( new Point( size.width, size.height / 3 ) );
+    this.fieldLines.addChild( this.goalRight );
+
+
+    this.goalLeft = new Path( {
+        strokeColor : "white",
+        strokeWidth : 7,
+        shadowColor: "white",
+        shadowBlur: 15,
+        shadowOffset: new Point(0, 0)
+    } );
+
+    this.goalLeft.add( new Point( 0, size.height / 3 ) );
+    this.goalLeft.add( new Point( 0, size.height / 3 ) );
     this.fieldLines.addChild( this.goalLeft );
 
-    this.goalRight = new Shape.Rectangle( {
-        center : [size.width, size.height / 2],
-        size : [size.height / 3, size.height / 3],
-        strokeColor : 'white',
-        strokeWidth : 7
-    } );
+    this.count = 0;
+    this.step = 5;
+    this.drawing =true;
+};
 
-    this.fieldLines.addChild( this.goalRight );
+Pitch.prototype.build = function () {
+
+    //console.log( this.count
+    this.count ++;
+
+    if (this.drawing){
+
+        if ( this.count <= size.height / this.step + 2 ) {
+            this.centerLine.segments[1].point += new Point( 0, this.step+2 );
+        }
+
+        if ( this.centreScale < 2.3) {
+            this.centreScale = this.centreScale + 0.1;
+
+            this.centerCircle.scale( 1.1 );
+        }
+
+        if ( this.count > size.height / this.step ) {
+            this.drawing =false;
+        }
+
+        if ( this.count <= 100 / this.step ) {
+            this.goalRight.segments[1].point += new Point( -1 * this.step, 0 );
+            this.goalLeft.segments[1].point += new Point(  this.step, 0 );
+        }
+
+        if ( this.count == 100 / this.step ) {
+            this.goalRight.add( new Point( this.goalRight.segments[1].point ) );
+            this.goalLeft.add( new Point( this.goalLeft.segments[1].point ) );
+        }
+
+        if ( this.goalRight.segments[2] && this.count <=  (100 +(size.height / 3)) / this.step) {
+            this.goalRight.segments[2].point += new Point( 0, this.step );
+            this.goalLeft.segments[2].point += new Point( 0, this.step );
+        }
+
+        if ( this.goalRight.segments[2] && this.count == Math.floor((100 +(size.height / 3)) / this.step)) {
+            this.goalRight.add( new Point( this.goalRight.segments[2].point ) );
+            this.goalLeft.add( new Point( this.goalLeft.segments[2].point ) );
+        }
+
+        if ( this.goalRight.segments[3] && this.count < (200 +(size.height / 3)) / this.step) {
+            this.goalRight.segments[3].point += new Point( this.step , 0);
+            this.goalLeft.segments[3].point += new Point( -1*this.step , 0);
+        }
+
+    }
+
+
 };
 
 Pitch.prototype.change = function ( color ) {
-
     this.fieldLines.strokeColor = color;
+    this.fieldLines.shadowColor = color;
 
+    game.scoreText.strokeColor = color;
+    game.scoreText.shadowColor = color;
 };
 
 var Background = function () {
@@ -535,8 +631,14 @@ var Background = function () {
 
 Background.prototype.change = function ( index ) {
 
+    if ($('.show video')[0]){
+        $('.show video')[0].pause();
+    }
+
     $( '.show' ).removeClass( 'show' );
     $( this.backgroundPrefix + index ).addClass( 'show' );
+
+    $("#video-" + index )[0].play();
 
     if ( this.backdrop ) {
         this.backdrop.remove();
@@ -568,7 +670,6 @@ function Goal ( team ) {
 
     this.scoreText.content = "GOAL!!!";
     if ( team == 1 ) {
-
         this.scoreText.rotation = 180;
     }
 
@@ -577,7 +678,7 @@ function Goal ( team ) {
     };
 
     goalSound.play();
-
+    background.change( Math.floor( Math.random() * 4 ));
 }
 
 Goal.prototype.iterate = function () {
@@ -600,10 +701,9 @@ Goal.prototype.iterate = function () {
         this.backdrop.remove();
 
 
-
         if ( frenzyTeam ) {
             frenzy = new Frenzy( frenzyTeam );
-        }else{
+        } else {
             replayBalls.push( new ReplayBall() );
         }
 
@@ -611,7 +711,7 @@ Goal.prototype.iterate = function () {
     }
 };
 
-var goalEnd = function(){
+var goalEnd = function () {
     goal = undefined;
 };
 
@@ -620,14 +720,20 @@ function GameGraphics () {
 
     scoreLayer.activate();
 
-    //this.scoreText = new PointText( {
-    //    point : view.center,
-    //    justification : 'center',
-    //    fontSize : 100,
-    //    fillColor : 'black'
-    //} );
-    //
-    //this.scoreText.content = this.score[0] + " : " + this.score[1];
+    this.scoreText = new PointText( {
+        point : [size.width/2,size.height/2 +30],
+        justification : 'center',
+        fontSize : 100,
+        fillColor : 'white',
+        shadowColor : "white",
+        shadowBlur : 15,
+        shadowOffset : new Point( 0, 0 )
+    } );
+    this.scoreText.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+
+    this.scoreText.content = this.score[0] + " : " + this.score[1];
 
 };
 
@@ -635,10 +741,11 @@ GameGraphics.prototype = {
 
     goalScored : function ( team ) {
 
-        //this.score[team] = this.score[team] + 1;
+        this.score[team] = this.score[team] + 1;
+        this.scoreText.content = this.score[0] + " : " + this.score[1];
 
-        if (!goal){
-            goal = new Goal( team ) ;
+        if ( ! goal ) {
+            goal = new Goal( team );
         }
 
     }
@@ -671,13 +778,20 @@ function onKeyUp ( event ) {
     }
 
     if ( event.key == 'f' ) {
-        console.log( 'frenzy!!!' );
         frenzy = new Frenzy( 1 );
     }
 
     if ( event.key == '0' ) {
         useMousePos = ! useMousePos;
     }
+
+    if ( event.key == 'g' ) {
+        background = new Background();
+        pitch = new Pitch();
+        ball = new Ball();
+        game = new GameGraphics();
+    }
+
 }
 
 
@@ -696,11 +810,13 @@ function onFrame ( event ) {
             goal.iterate();
         }
 
+        pitch.build( event.count );
+
         if ( replayBalls.length ) {
             replayBalls[0].iterate();
         }
 
-        if ( ball && currentPos && !goal ) {
+        if ( ball && currentPos && ! goal ) {
             ball.iterate( currentPos );
         }
 
@@ -726,3 +842,4 @@ handleSocketEvents();
 
 socket.emit( 'get-current-theme' );
 socket.emit( 'reset-game' );
+

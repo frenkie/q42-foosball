@@ -118,7 +118,7 @@ GameEngine.prototype = {
         this.socket.emit('score-left', this.state.score );
         this.socket.emit('score-update', this.state.score );
 
-        this.handleFrenzy(false);
+        this.handleFrenzy("left");
     },
 
     handleScoreRight: function () {
@@ -128,7 +128,7 @@ GameEngine.prototype = {
         this.socket.emit('score-right', this.state.score);
         this.socket.emit('score-update', this.state.score );
 
-        this.handleFrenzy(true);
+        this.handleFrenzy("right");
     },
 
     handleSetLowerBallThreshold: function () {
@@ -161,35 +161,23 @@ GameEngine.prototype = {
         this.socket.emit('score-update', this.state.score );
     },
 
-    handleFrenzy: function( right ) {
+    handleFrenzy: function( team ) {
 
-        if ( right && this.state.lastScorer == "right" ) {
+        if ( team == this.state.lastScorer ) {
 
             this.state.score.frenzy++;
             if ( this.state.score.frenzy >= this.frenzyThreshold ) {
-                this.socket.emit('frenzy', 'right', true);
-                console.log('frenzy right', true);
+                this.socket.emit('frenzy', team, true);
+                console.log('frenzy '+ team, true);
             }
 
-        } else if ( !right && this.state.lastScorer == "left" ) {
-
-            this.state.score.frenzy++;
-            if (this.state.score.frenzy >= this.frenzyThreshold) {
-                this.socket.emit('frenzy', 'left', true);
-                console.log('frenzy left ', true);
-            }
-
-        }else {
+        } else {
             this.state.score.frenzy = 0;
             this.socket.emit('frenzy', this.state.lastScorer, false);
             console.log('frenzy '+ this.state.lastScorer, false);
         }
 
-        if ( right ){
-            this.state.lastScorer = "right";
-        }else{
-            this.state.lastScorer = "left";
-        }
+        this.state.lastScorer = team;
 
     },
 
