@@ -45,7 +45,7 @@ GameEngine.prototype = {
             client.on('subtract-score-left', this.handleSubtractScoreLeft.bind( this ) );
             client.on('subtract-score-right', this.handleSubtractScoreRight.bind( this ) );
 
-            client.on('reset-game', this.resetGame.bind( this ) );
+            client.on('reset-game', this.handleResetGame.bind( this ) );
 
 
         }.bind( this ) );
@@ -125,6 +125,11 @@ GameEngine.prototype = {
     handleTableBounds: function ( bounds ) {
         console.log('bounds');
         this.tracker.setTableBounds( bounds );
+    },
+
+    handleResetGame: function () {
+        this.resetGame();   
+        this.socket.emit('reset-game');
     },
 
     resetGame: function () {
