@@ -8,7 +8,7 @@ var util = require('util');
 
 var GREEN = [0, 255, 0]; // B, G, R
 
-var TABLE_DIMENSIONS = { length: 150, height: 75 }; // in cm's
+var TABLE_DIMENSIONS = { length: 120, height: 68 }; // in cm's
 var TABLE_BOUNDS; // when there is a cut out of the webcam
 
 
