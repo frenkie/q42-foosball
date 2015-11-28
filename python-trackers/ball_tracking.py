@@ -9,8 +9,6 @@ import cv2
 import logging
 import math
 import ballColors
-import websocket
-from websocket import create_connection
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
@@ -23,7 +21,7 @@ args = vars(ap.parse_args())
 
 # define the lower and upper boundaries of the
 # ball in the HSV color space
-ballColor = ballColors.speedball
+ballColor = ballColors.fluor
 
 pts = deque(maxlen=args['buffer'])
 
@@ -50,10 +48,6 @@ e2 = Entry(master)
 e1.grid(row=0, column=1)
 e2.grid(row=1, column=1)
 
-
-#############################
-
-ws = create_connection("ws://echo.websocket.org/")
 
 ################################
 
@@ -172,14 +166,7 @@ Button(master, text='Save', command=setTableSize).grid(row=3, column=0, sticky=W
 # user first has to enter table dimensions before we start tracking
 mainloop()
 
-# ws = websocket.WebSocketApp("ws://echo.websocket.org/",
-# 						  on_message = onSocketMessage,
-# 						  on_error = onSocketError,
-# 						  on_close = onSocketClose)
-
-# ws.run_forever()
-
-ws.on_open = onSocketConnected
+logging.info('logging data from python')
 
 # keep looping while tracking
 while True:
@@ -275,7 +262,13 @@ while True:
 			printBallPosition(frame)
 
 	# show the frame to our screen
-	cv2.imshow('Frame', frame)
+
+	if args.get('kinect'):
+		cv2.imshow('Frame', get_depth())
+	else:
+		cv2.imshow('Frame', frame)
+
+	#cv2.imshow('Frame', frame)
 
 	if len(tableDimensions) == 2:
 		cv2.imshow('Cutout', frameCut)
@@ -291,5 +284,4 @@ while True:
 if not args.get('kinect'):
 	camera.release()
 
-ws.close()
 cv2.destroyAllWindows()

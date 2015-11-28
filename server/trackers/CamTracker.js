@@ -9,6 +9,7 @@ var util = require('util');
 var GREEN = [0, 255, 0]; // B, G, R
 var RED = [0, 0, 255]; // B, G, R
 var BLUE = [255, 0, 0]; // B, G, R
+var WHITE = [255, 255, 255]; // B, G, R
 
 var TABLE_DIMENSIONS = { length: 120, height: 68 }; // in cm's
 var TABLE_BOUNDS; // when there is a cut out of the webcam
@@ -24,8 +25,8 @@ var CamTracker = function () {
     this.resetBallThreshold();
     
     this.camera = new cv.VideoCapture(1);
-    this.camera.setWidth(320);
-    this.camera.setHeight(180);
+    this.camera.setWidth(640);
+    this.camera.setHeight(360);
 
     this.tracking = false;
 };
@@ -70,7 +71,7 @@ extend(CamTracker.prototype, {
                 center.y = center.y + TABLE_BOUNDS.y;
             }
 
-            testIm.ellipse( center.x, center.y, radius * 2, radius * 2, BLUE );
+            testIm.ellipse( center.x, center.y, radius * 2, radius * 2, RED );
 
             center.x = Math.floor( ( center.x / testIm.width() ) * TABLE_DIMENSIONS.length );
             center.y = Math.floor( ( center.y / testIm.height() ) * TABLE_DIMENSIONS.height );
@@ -153,7 +154,7 @@ extend(CamTracker.prototype, {
 
                 mask.convertHSVscale();
                 mask.inRange(this.lowerThreshold, this.upperThreshold);
-                mask.erode(2);
+                //mask.erode(2);
                 mask.dilate(2);
 
                 contours = mask.findContours();
@@ -171,17 +172,19 @@ extend(CamTracker.prototype, {
                     }
                 }
 
-                // TODO if TABLE_BOUNDS is set, big image should have different size...
-                big.drawAllContours(contours, GREEN);
 
-                im.convertHSVscale();
-                this.emit('frame', {buffer: im.toBuffer()});
-                this.emit('mask', {buffer: big.toBuffer(), width: big.width(), height: big.height()});
+                //big.drawAllContours(contours, GREEN);
+                //
+                //im.convertHSVscale();
+                this.emit('frame', {buffer: im.toBuffer(), width: im.width(), height: im.height()});
+                //this.emit('mask', {buffer: big.toBuffer(), width: big.width(), height: big.height()});
 
                 //this.frameCount++;
                 //console.log( this.frameCount / ( ( Date.now() - this.startTime ) / 1000 ) );
 
-                this.track();
+                //setTimeout( function () {
+                    this.track();
+                //}.bind(this), 500)
             }.bind(this));
         }
     }

@@ -1,7 +1,9 @@
 
 var Tracker;
-if ( ! process.env.NOTRACK ) {
-    Tracker = require('./trackers/CamTracker')
+if ( process.env.PYTHON_TRACKER ) {
+    Tracker = require('./trackers/PythonCamTracker');
+} else if ( ! process.env.NOTRACK ) {
+    Tracker = require('./trackers/CamTracker');
 }
 
 /**

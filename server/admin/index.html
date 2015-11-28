@@ -187,8 +187,14 @@
             var str = String.fromCharCode.apply(null, uint8Arr);
             var base64String = btoa(str);
 
+            frameCanvas.width = data.width;
+            frameCanvas.style.width = data.width +'px';
+            frameCanvas.height = data.height;
+            frameCanvas.style.height = data.height +'px';
+
             frameImg.onload = function () {
-                frameContext.clearRect( 0, 0, frameCanvas.width, frameCanvas.height );
+
+                //frameContext.clearRect( 0, 0, frameCanvas.width, frameCanvas.height );
                 frameContext.drawImage(this, 0, 0, frameCanvas.width, frameCanvas.height);
 
                 if ( TABLE_BOUNDS ) {
