@@ -221,11 +221,12 @@ GameEngine.prototype = {
     },
 
     handleCycleTheme: function ( ) {
-        this.currentTheme = this.currentTheme + 1;
 
         if (this.currentTheme >= this.themes.length -1 ){
             this.currentTheme = 0;
         }
+        this.currentTheme = this.currentTheme + 1;
+
         console.log('theme cycled: ' + this.themes[this.currentTheme]);
         this.socket.emit('change-theme', this.currentTheme);
     }

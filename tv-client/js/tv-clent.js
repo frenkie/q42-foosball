@@ -5,6 +5,7 @@ var trailBallLayer = new Layer();
 var ballLayer = new Layer();
 var scoreLayer = new Layer();
 var frenzyLayer = new Layer();
+var themeLayer = new Layer();
 var overlayLayer = new Layer();
 
 var startScreen;
@@ -38,16 +39,15 @@ var screenSize = {
 };
 
 
-var socket  = io( "http://10.42.38.110:9090" );
-
+var socket = io( "http://10.42.38.110:9090" );
 
 
 //  THEMES
 var themeNames = [
-    "CLASSIC",
+    "ARCADE",
     "HYPER",
     "ZEN",
-    "REGULAR"
+    "CLASSIC"
 ];
 
 
@@ -56,13 +56,47 @@ var soundPlaying;
 
 var ost;
 
-var ost1  = new buzz.sound( "sounds/soundtrack-0", { formats : ["mp3"] } );
-var ost2  = new buzz.sound( "sounds/soundtrack-1", { formats : ["mp3"] } );
-var ost3  = new buzz.sound( "sounds/soundtrack-0", { formats : ["mp3"] } );
-var ost4  = new buzz.sound( "sounds/soundtrack-1", { formats : ["mp3"] } );
-var ostList = [ ost1, ost2, ost3, ost4 ];
+var ost1 = new buzz.sound( "sounds/soundtrack-00", { formats : ["mp3"] } );
+var ost2 = new buzz.sound( "sounds/soundtrack-01", { formats : ["mp3"] } );
+var ost3 = new buzz.sound( "sounds/soundtrack-02", { formats : ["mp3"] } );
+var ost4 = new buzz.sound( "sounds/soundtrack-03", { formats : ["mp3"] } );
 
-var frenzyTrack = new buzz.sound( "sounds/frenzy-track-short", { formats : ["mp3"] } );
+var ost5 = new buzz.sound( "sounds/soundtrack-10", { formats : ["mp3"] } );
+var ost6 = new buzz.sound( "sounds/soundtrack-11", { formats : ["mp3"] } );
+var ost7 = new buzz.sound( "sounds/soundtrack-12", { formats : ["mp3"] } );
+var ost8 = new buzz.sound( "sounds/soundtrack-13", { formats : ["mp3"] } );
+
+var ost9 = new buzz.sound( "sounds/soundtrack-20", { formats : ["mp3"] } );
+var ost10 = new buzz.sound( "sounds/soundtrack-21", { formats : ["mp3"] } );
+var ost11 = new buzz.sound( "sounds/soundtrack-22", { formats : ["mp3"] } );
+var ost12 = new buzz.sound( "sounds/soundtrack-23", { formats : ["mp3"] } );
+
+var ost13 = new buzz.sound( "sounds/soundtrack-30", { formats : ["mp3"] } );
+var ost14 = new buzz.sound( "sounds/soundtrack-31", { formats : ["mp3"] } );
+var ost15 = new buzz.sound( "sounds/soundtrack-32", { formats : ["mp3"] } );
+var ost16 = new buzz.sound( "sounds/soundtrack-33", { formats : ["mp3"] } );
+
+
+var ostList = [
+    [ost1, ost2, ost3, ost4],
+    [ost5, ost6, ost7, ost8],
+    [ost9, ost10, ost11, ost12],
+    [ost13, ost14, ost15, ost16]
+];
+
+var frenzyTrack1 = new buzz.sound( "sounds/frenzy-0", { formats : ["mp3"] } );
+var frenzyTrack2 = new buzz.sound( "sounds/frenzy-1", { formats : ["mp3"] } );
+var frenzyTrack3 = new buzz.sound( "sounds/frenzy-2", { formats : ["mp3"] } );
+var frenzyTrack4 = new buzz.sound( "sounds/frenzy-3", { formats : ["mp3"] } );
+
+var frenzyTrackList = [
+    frenzyTrack1,
+    frenzyTrack2,
+    frenzyTrack3,
+    frenzyTrack4
+];
+
+
 var frenzySound = new buzz.sound( "sounds/frenzy", { formats : ["mp3"] } );
 var goalSound = new buzz.sound( "sounds/goal1", { formats : ["wav"] } );
 
@@ -78,8 +112,7 @@ fussBallSounds.bind( "play", function ( e ) {
 } );
 
 
-
-function StartScreen(){
+function StartScreen () {
 
     overlayLayer.activate();
 
@@ -91,11 +124,11 @@ function StartScreen(){
 
 
     this.text = new PointText( {
-        point : [ size.width / 2, size.height / 2+ 50 ],
+        point : [size.width / 2, size.height / 2 + 50],
         justification : 'center',
         fontSize : 100,
         strokeColor : 'white',
-        fillColor: "black"
+        fillColor : "black"
     } );
 
     this.text.style = {
@@ -106,7 +139,7 @@ function StartScreen(){
 
 };
 
-StartScreen.prototype.iterate = function(){
+StartScreen.prototype.iterate = function () {
 
     this.backdrop.fillColor.hue += 1;
 };
@@ -116,11 +149,25 @@ function handleSocketEvents () {
     socket.on( 'reset-game', function ( event ) {
         console.log( "reset game:", event );
 
+        backgroundLayer.removeChildren();
+        fieldLayer.removeChildren();
+        hitLayer.removeChildren();
+        trailBallLayer.removeChildren();
+        ballLayer.removeChildren();
+        scoreLayer.removeChildren();
+        frenzyLayer.removeChildren();
+        overlayLayer.removeChildren();
+
         background = new Background();
         pitch = new Pitch();
         ball = new Ball();
         game = new GameGraphics();
     } );
+
+    //background = new Background();
+    //pitch = new Pitch();
+    //ball = new Ball();
+    //game = new GameGraphics();
 
     socket.on( 'end-frenzy', function () {
         frenzyTeam = undefined;
@@ -153,7 +200,7 @@ function handleSocketEvents () {
     } );
 
     socket.on( 'change-theme', function ( theme ) {
-        console.log( "theme event:", theme );
+        console.log( "theme event: ", theme );
 
         backgroundTheme = theme;
         if ( background ) {
@@ -280,7 +327,7 @@ var endFrenzy = function () {
     frenzyLayer.removeChildren();
     frenzy = undefined;
     frenzySound.stop();
-    frenzyTrack.stop();
+    currentFrenzyTrack.stop();
     ost.unmute();
     //ost.loop();
     background.currentplaybackrate = 1;
@@ -296,22 +343,28 @@ var Frenzy = function ( owner ) {
     this.frenzyTextGroup = [];
 
     //
-    if (ost){
+    if ( ost ) {
         ost.mute();
     }
-    frenzyTrack.play();
-    frenzyTrack.loop();
+
+    currentFrenzyTrack = frenzyTrackList[background.currentTheme];
+    currentFrenzyTrack.play();
+    currentFrenzyTrack.loop();
+
+    //
+    //frenzyTrack.play();
+    //frenzyTrack.loop();
     background.currentplaybackrate = 3;
     background.currentVideo.playbackRate = background.currentplaybackrate;
     frenzySound.play();
 
 
     this.text = new PointText( {
-            point : [ size.width / 2, size.height / 2+ 50],
-            justification : 'center',
-            fontSize : 150,
-            strokeColor : 'white'
-        } );
+        point : [size.width / 2, size.height / 2 + 50],
+        justification : 'center',
+        fontSize : 150,
+        strokeColor : 'white'
+    } );
 
     this.text.style = {
         fontFamily : 'Exo', fontWeight : 'bold'
@@ -340,13 +393,13 @@ var Frenzy = function ( owner ) {
     //    this.frenzyTextGroup.push( text );
     //};
 
-     new Shape.Rectangle( {
+    new Shape.Rectangle( {
         center : [size.width / 2, size.height / 2],
-        size : [ size.width + 70 , size.height + 70],
-        strokeColor : 'rgb(0,0,255,1)',
+        size : [size.width + 70, size.height + 70],
+        strokeColor : ownerColor,
         strokeWidth : 70,
-        shadowColor : "blue",
-        shadowBlur : 300,
+        shadowColor : ownerColor,
+        shadowBlur : 350,
         shadowOffset : new Point( 0, 0 )
     } );
 
@@ -635,7 +688,6 @@ Pitch.prototype.change = function ( color ) {
 };
 
 
-
 var Background = function () {
 
     this.currentplaybackrate = 1;
@@ -650,17 +702,19 @@ var Background = function () {
 
 Background.prototype.change = function ( index ) {
 
-    this.currentVideo.src = "resources/video/video-"+ index + ".mp4";
+    this.currentTheme = index;
+    this.currentVideo.src = "resources/video/video-" + index + "0.mp4";
     this.currentVideo.play();
     this.currentVideo.playbackRate = this.currentplaybackrate;
 
     if ( this.backdrop ) {
         this.backdrop.remove();
     }
-    if (ost){
+
+    if ( ost ) {
         ost.stop();
     }
-    ost  = ostList[ index ];
+    ost = ostList[index][0];
     ost.play();
     ost.loop();
 
@@ -668,41 +722,60 @@ Background.prototype.change = function ( index ) {
 
 };
 
-function showThemeText( index ){
+Background.prototype.changeVideo = function (randomized){
+
+    this.currentVideo.src = "resources/video/video-" + this.currentTheme + randomized+".mp4";
+    this.currentVideo.play();
+    this.currentVideo.playbackRate = this.currentplaybackrate;
+
+    if ( ost ) {
+        ost.stop();
+    }
+    ost = ostList[this.currentTheme][randomized];
+    //console.log(ost, this.currentVideo.src);
+    ost.play();
+    ost.loop();
+
+};
+
+function showThemeText ( index ) {
 
     removeThemeText();
 
     themeText = new ThemeText( index )
 }
 
-function removeThemeText(){
+function removeThemeText () {
 
-    if ( themeText ){
+    if ( themeText ) {
+        themeLayer.removeChildren();
         themeText.themeText1.remove();
         themeText.themeText2.remove();
     }
 }
 
-function ThemeText( index ){
+function ThemeText ( index ) {
+
+    themeLayer.activate();
 
     this.themeText1 = new PointText( {
-        point : [size.width / 2,  150 ],
+        point : [size.width / 2, 150],
         justification : 'center',
         fontSize : 50,
         fillColor : 'white'
     } );
 
     this.themeText2 = new PointText( {
-        point : [size.width / 2,  size.height - 150 ],
+        point : [size.width / 2, size.height - 150],
         justification : 'center',
         fontSize : 50,
         fillColor : 'white'
     } );
 
-    this.themeText2.rotate(180);
+    this.themeText2.rotate( 180 );
 
-    this.themeText1.content = themeNames[ index ] + " MODE ACTIVATED";
-    this.themeText2.content = themeNames[ index ] +" MODE ACTIVATED";
+    this.themeText1.content = themeNames[index] + " MODE ";
+    this.themeText2.content = themeNames[index] + " MODE ";
 
     this.themeText1.style = {
         fontFamily : 'Exo', fontWeight : 'bold'
@@ -716,7 +789,7 @@ function ThemeText( index ){
 
 }
 
-ThemeText.prototype.iterate = function(){
+ThemeText.prototype.iterate = function () {
 
     if ( this.lifespan == 180 ) {
         removeThemeText();
@@ -758,7 +831,7 @@ function Goal ( team ) {
     };
 
     goalSound.play();
-    background.change( Math.floor( Math.random() * 4 ) );
+    background.changeVideo( Math.floor( Math.random() * 4 ) );
 }
 
 Goal.prototype.iterate = function () {
@@ -784,7 +857,7 @@ Goal.prototype.iterate = function () {
         if ( frenzyTeam ) {
             frenzy = new Frenzy( frenzyTeam );
         } else {
-           // replayBalls.push( new ReplayBall() );
+             replayBalls.push( new ReplayBall() );
         }
 
         goalEnd();
@@ -841,7 +914,7 @@ GameGraphics.prototype = {
 
     goalScored : function ( team ) {
 
-        this.score[ team ] = this.score[team] + 1;
+        this.score[team] = this.score[team] + 1;
         this.scoreTextLeft.content = this.score[0];
         this.scoreTextRight.content = this.score[1];
 
@@ -879,12 +952,13 @@ function onKeyUp ( event ) {
     }
 
     if ( event.key == 'f' ) {
-        frenzy = new Frenzy( 1 );
+        frenzy = new Frenzy( 0 );
     }
 
     if ( event.key == 'd' ) {
         endFrenzy();
     }
+
 
     if ( event.key == 'p' ) {
         $( '.show video' )[0].pause();
@@ -905,7 +979,7 @@ function onKeyUp ( event ) {
 
 
 function onFrame ( event ) {
-    if (!game && startScreen){
+    if ( ! game && startScreen ) {
         startScreen.iterate();
     }
     if ( game ) {
@@ -954,7 +1028,11 @@ Number.prototype.map = function ( in_min, in_max, out_min, out_max ) {
 };
 
 
-
 handleSocketEvents();
 
 startScreen = new StartScreen();
+//
+//background = new Background();
+//pitch = new Pitch();
+//ball = new Ball();
+//game = new GameGraphics();
