@@ -152,7 +152,25 @@
             }
         });
 
+        var keyUpTimeouts = {};
+
         $(document).keyup(function( e ){
+
+            if ( ! keyUpTimeouts[''+ e.keyCode] ) {
+
+                keyUpTimeouts[''+ e.keyCode] = Date.now();
+                console.log('setting keyup timeout');
+
+            } else {
+                if ( Date.now() - keyUpTimeouts[''+ e.keyCode] < 1000 ) {
+                    console.log('keyup bouncer, it has been only '+ ( Date.now() - keyUpTimeouts[''+ e.keyCode] ) +
+                            'ms sincea the last call' );
+                    return;
+                } else {
+                    console.log('reset keyup timeout');
+                    keyUpTimeouts[''+ e.keyCode] = Date.now();
+                }
+            }
 
             console.log( e.keyCode );
 
@@ -160,8 +178,9 @@
 
                 case 65:
                     // A-Key
-                    // New balls
-
+                    // New balls / resta
+                    socket.emit('reset-game');
+                    break;
                 case 68:
                     // D-Key
                     socket.emit('score-right');
@@ -175,6 +194,7 @@
                 case 87:
                     // W-key
                     // mode change
+                    socket.emit('change-theme');
                     break;
 
                 default:
