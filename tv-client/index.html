@@ -5,10 +5,8 @@
     <title>ball test</title>
     <link rel="stylesheet" href="css/style.css">
 
-
     <script type="text/javascript" src='node_modules/jquery/dist/jquery.js'></script>
     <script type="text/javascript" src="node_modules/paper/dist/paper-full.js"></script>
-    <!--<script type="text/javascript" src="node_modules/socket.io-client/socket.io.js"></script>-->
 
     <link href='https://fonts.googleapis.com/css?family=Exo:900italic' rel='stylesheet' type='text/css'>
 
@@ -18,31 +16,27 @@
 
     <script src='js/tv-clent.js' type="text/paperscript" canvas="canvas"></script>
 </head>
+
 <body>
 
-
-<canvas id="canvas" resize stats hidpi="off"></canvas>
-
-<!--<div id='background-1' class='background texture' style="background:url(resources/img/gras.jpg)"></div>-->
-
-<!--<div id='background-1' class='background texture' style="background:url(resources/img/concrete.jpg)"></div>-->
+<div class="canvas-wrapper">
+    <canvas id="canvas" resize stats hidpi="off"></canvas>
+</div>
 
 <div id='background-0' class='background video'>
-    <video id='video-0' style="height:100%;width:100%" src="resources/video/fall.mp4"  loop/>
+    <video id='video-0' style="height:100%;width:100%" src="resources/video/fall-green.mp4" muted loop/>
 </div>
 
 <div id='background-1' class='background video'>
-    <video id='video-1' style="height:100%;width:100%" src="resources/video/trees.mp4" loop/>
+    <video id='video-1' style="height:100%;width:100%" src="resources/video/trees.mp4" muted loop/>
 </div>
 
 <div id='background-2' class='background video'>
-    <video id='video-2' style="height:100%;width:100%" src="resources/video/starfield.mp4" loop/>
+    <video id='video-2' style="height:100%;width:100%" src="resources/video/starfield.mp4" muted loop/>
 </div>
 
-<!--<div id='background-2' class='background texture' style="background:url(resources/img/grid.jpg)"></div>-->
-
 <div id='background-3' class='background video'>
-    <video id='video-3' style="height:100%;width:100%" src="resources/video/fire.mp4" loop  />
+    <video id='video-3' style="height:100%;width:100%" src="resources/video/fire.mp4" muted loop />
 </div>
 
 

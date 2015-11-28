@@ -3,6 +3,7 @@ var fieldLayer = new Layer();
 var hitLayer = new Layer();
 var trailBallLayer = new Layer();
 var ballLayer = new Layer();
+var frenzyLayer = new Layer();
 var scoreLayer = new Layer();
 var overlayLayer = new Layer();
 
@@ -40,9 +41,16 @@ var socket = io( "http://10.42.38.110:9090" );
 // SOUNDS
 var soundPlaying;
 
+var ost = new buzz.sound( "sounds/soundtrack", { formats : ["mp3"] } );
+var frenzyTrack = new buzz.sound( "sounds/frenzy-track-short", { formats : ["mp3"] } );
+var frenzySound = new buzz.sound( "sounds/frenzy", { formats : ["mp3"] } );
+
+ost.play();
+ost.loop();
+
 var goalSound = new buzz.sound( "sounds/goal1", { formats : ["wav"] } );
 var explosionLongSound = new buzz.sound( "sounds/explosion-long", { formats : ["wav"] } );
-var frenzySound = new buzz.sound( "sounds/frenzy", { formats : ["mp3"] } );
+
 
 var fussBallSounds = new buzz.group( [goalSound, explosionLongSound] );
 
@@ -217,27 +225,43 @@ ReplayBall.prototype.iterate = function () {
 };
 
 var endFrenzy = function () {
+    frenzyLayer.removeChildren();
     frenzy = undefined;
+    frenzySound.stop();
+    frenzyTrack.stop();
+    ost.unmute();
+    //ost.loop();
+    background.currentplaybackrate = 1;
+    background.currentVideo.playbackRate = background.currentplaybackrate;
 };
 
 var Frenzy = function ( owner ) {
 
     var ownerColor = teamColors[owner];
-    overlayLayer.activate();
+    frenzyLayer.activate();
 
-    this.lifespan = 280;
+    //this.lifespan = 280;
+    this.lifespan = 0;
     this.frenzyTextGroup = [];
 
-    if ( ! soundPlaying ) {
-        frenzySound.play();
-    }
+    //
+    ost.mute();
+    frenzyTrack.play();
+    frenzyTrack.loop();
+    background.currentplaybackrate = 3;
+    background.currentVideo.playbackRate = background.currentplaybackrate;
+    frenzySound.play();
+
+    //if ( ! soundPlaying ) {
+    //
+    //}
 
     for ( var i = 0; i < 20; i ++ ) {
         var text = new PointText( {
             point : [i * 100, size.height / 2],
             justification : 'center',
             fontSize : 100,
-            fillColor : ownerColor
+            strokeColor : 'white'
         } );
         text.style = {
             fontFamily : 'Exo', fontWeight : 'bold'
@@ -247,12 +271,11 @@ var Frenzy = function ( owner ) {
         if ( i % 2 == 0 ) {
             text.content = "   FRENZY FRENZY FRENZY";
         }
-        text.fillColor.hue = Math.floor( Math.random() * 30 );
-        text.opacity = 1;
+        text.strokeColor.hue = Math.floor( Math.random() * 30 );
+        text.opacity = 0;
         text.rotate( 60 );
         this.frenzyTextGroup.push( text );
-    }
-    ;
+    };
 
 };
 
@@ -264,30 +287,31 @@ Frenzy.prototype.iterate = function () {
 
 
         if ( this.lifespan % 10 == 0 ) {
-            child.fillColor.hue = Math.floor( Math.random() * 30 );
+            child.strokeColor.hue = Math.floor( Math.random() * 60 );
         }
 
-        if ( this.lifespan % 15 == 0 ) {
+        if ( this.lifespan % 3 == 0 ) {
 
-            var opt = Math.floor( Math.random() * 2 );
+            var opt = Math.floor( Math.random() * 4 );
             if ( opt == 0 ) {
-                child.opacity = 0;
-            } else {
                 child.opacity = 1;
+            } else {
+                child.opacity = 0;
             }
         }
 
-        if ( this.lifespan == 0 ) {
-            child.remove();
-        }
+        //if ( this.lifespan == 0 ) {
+        //    child.remove();
+        //}
     }
+    this.lifespan ++;
 
-    if ( this.lifespan == 0 ) {
-        this.frenzyTextGroup = [];
-        endFrenzy();
-    }
-
-    this.lifespan --;
+    //if ( this.lifespan == 0 ) {
+    //    this.frenzyTextGroup = [];
+    //    endFrenzy();
+    //}
+    //
+    //this.lifespan --;
 
 };
 
@@ -341,7 +365,7 @@ var Ball = function () {
     this.item = new Shape.Ellipse( {
         center : [0, 0],
         size : [this.radius, this.radius],
-        fillColor : 'rgba(0,0,255,1)'
+        fillColor : 'rgba(0,0,255,0)'
     } );
 
     this.destination = Point.random() * (view.size + 100);
@@ -407,7 +431,7 @@ Ball.prototype.iterate = function ( position ) {
 
     var speed = this.item.pre - this.item.position;
 
-    if ( speed.length > 30 && speed.length > this.preSpeed ) {
+    if ( speed.length > 50 && speed.length > this.preSpeed ) {
         if ( ! soundPlaying ) {
             explosionLongSound.play();
         }
@@ -427,43 +451,43 @@ Ball.prototype.iterate = function ( position ) {
 
     } else if ( speed.length == 0 ) {
 
-        if ( this.still ) {
-
-            this.stillCounter = this.stillCounter + 1;
-
-            if ( this.still.size.width >= 160 ) {
-                this.still.size = 5;
-            }
-            this.still.size = this.still.size + 1;
-
-
-            if ( this.still2 && this.still2.size.width >= 160 ) {
-                this.still2.size = 5;
-            }
-            if ( this.still2 ) {
-                this.still2.size = this.still2.size + 1;
-            }
-            if ( this.stillCounter == 60 ) {
-
-                this.still2 = new Shape.Ellipse( {
-                    center : [this.item.position.x, this.item.position.y],
-                    size : [50, 50],
-                    fillColor : 'rgba(0,0,0,0)',
-                    strokeColor : ownerColor,
-                    strokeWidth : 5
-                } );
-            }
-
-        } else {
-            this.stillCounter = 0;
-            this.still = new Shape.Ellipse( {
-                center : [this.item.position.x, this.item.position.y],
-                size : [50, 50],
-                fillColor : 'rgba(0,0,0,0)',
-                strokeColor : ownerColor,
-                strokeWidth : 5
-            } );
-        }
+        //if ( this.still ) {
+        //
+        //    this.stillCounter = this.stillCounter + 1;
+        //
+        //    if ( this.still.size.width >= 160 ) {
+        //        this.still.size = 5;
+        //    }
+        //    this.still.size = this.still.size + 1;
+        //
+        //
+        //    if ( this.still2 && this.still2.size.width >= 160 ) {
+        //        this.still2.size = 5;
+        //    }
+        //    if ( this.still2 ) {
+        //        this.still2.size = this.still2.size + 1;
+        //    }
+        //    if ( this.stillCounter == 60 ) {
+        //
+        //        this.still2 = new Shape.Ellipse( {
+        //            center : [this.item.position.x, this.item.position.y],
+        //            size : [50, 50],
+        //            fillColor : 'rgba(0,0,0,0)',
+        //            strokeColor : ownerColor,
+        //            strokeWidth : 5
+        //        } );
+        //    }
+        //
+        //} else {
+        //    this.stillCounter = 0;
+        //    this.still = new Shape.Ellipse( {
+        //        center : [this.item.position.x, this.item.position.y],
+        //        size : [50, 50],
+        //        fillColor : 'rgba(0,0,0,0)',
+        //        strokeColor : ownerColor,
+        //        strokeWidth : 5
+        //    } );
+        //}
 
 
     }
@@ -500,42 +524,17 @@ var Pitch = function () {
         shadowBlur : 15,
         shadowOffset : new Point( 0, 0 )
     } );
-    this.centerCircle.scale(0.1);
+    this.centerCircle.scale( 0.1 );
     this.centreScale = 0.1;
 
     this.fieldLines.addChild( this.centerCircle );
 
-    //this.goalLeft = new Shape.Rectangle( {
-    //    center : [0, size.height / 2],
-    //    size : [size.height / 3, size.height / 3],
-    //    strokeColor : 'white',
-    //    strokeWidth : 7,
-    //    shadowColor : "white",
-    //    shadowBlur : 15,
-    //    shadowOffset : new Point( 0, 0 )
-    //
-    //} );
-    //this.fieldLines.addChild( this.goalLeft );
-
-    //this.goalRight = new Shape.Rectangle( {
-    //    center : [size.width, size.height / 2],
-    //    size : [size.height / 3, size.height / 3],
-    //    strokeColor : 'white',
-    //    strokeWidth : 7,
-    //    shadowColor : "white",
-    //    shadowBlur : 15,
-    //    shadowOffset : new Point( 0, 0 )
-    //
-    //} );
-    //
-    //this.fieldLines.addChild( this.goalRight );
-
     this.goalRight = new Path( {
         strokeColor : "white",
         strokeWidth : 7,
-        shadowColor: "white",
-        shadowBlur: 15,
-        shadowOffset: new Point(0, 0)
+        shadowColor : "white",
+        shadowBlur : 15,
+        shadowOffset : new Point( 0, 0 )
     } );
 
     this.goalRight.add( new Point( size.width, size.height / 3 ) );
@@ -546,9 +545,9 @@ var Pitch = function () {
     this.goalLeft = new Path( {
         strokeColor : "white",
         strokeWidth : 7,
-        shadowColor: "white",
-        shadowBlur: 15,
-        shadowOffset: new Point(0, 0)
+        shadowColor : "white",
+        shadowBlur : 15,
+        shadowOffset : new Point( 0, 0 )
     } );
 
     this.goalLeft.add( new Point( 0, size.height / 3 ) );
@@ -557,7 +556,7 @@ var Pitch = function () {
 
     this.count = 0;
     this.step = 5;
-    this.drawing =true;
+    this.drawing = true;
 };
 
 Pitch.prototype.build = function () {
@@ -565,25 +564,25 @@ Pitch.prototype.build = function () {
     //console.log( this.count
     this.count ++;
 
-    if (this.drawing){
+    if ( this.drawing ) {
 
         if ( this.count <= size.height / this.step + 2 ) {
-            this.centerLine.segments[1].point += new Point( 0, this.step+2 );
+            this.centerLine.segments[1].point += new Point( 0, this.step + 2 );
         }
 
-        if ( this.centreScale < 2.3) {
+        if ( this.centreScale < 2.3 ) {
             this.centreScale = this.centreScale + 0.1;
 
             this.centerCircle.scale( 1.1 );
         }
 
         if ( this.count > size.height / this.step ) {
-            this.drawing =false;
+            this.drawing = false;
         }
 
         if ( this.count <= 100 / this.step ) {
-            this.goalRight.segments[1].point += new Point( -1 * this.step, 0 );
-            this.goalLeft.segments[1].point += new Point(  this.step, 0 );
+            this.goalRight.segments[1].point += new Point( - 1 * this.step, 0 );
+            this.goalLeft.segments[1].point += new Point( this.step, 0 );
         }
 
         if ( this.count == 100 / this.step ) {
@@ -591,19 +590,19 @@ Pitch.prototype.build = function () {
             this.goalLeft.add( new Point( this.goalLeft.segments[1].point ) );
         }
 
-        if ( this.goalRight.segments[2] && this.count <=  (100 +(size.height / 3)) / this.step) {
+        if ( this.goalRight.segments[2] && this.count <= (100 + (size.height / 3)) / this.step ) {
             this.goalRight.segments[2].point += new Point( 0, this.step );
             this.goalLeft.segments[2].point += new Point( 0, this.step );
         }
 
-        if ( this.goalRight.segments[2] && this.count == Math.floor((100 +(size.height / 3)) / this.step)) {
+        if ( this.goalRight.segments[2] && this.count == Math.floor( (100 + (size.height / 3)) / this.step ) ) {
             this.goalRight.add( new Point( this.goalRight.segments[2].point ) );
             this.goalLeft.add( new Point( this.goalLeft.segments[2].point ) );
         }
 
-        if ( this.goalRight.segments[3] && this.count < (200 +(size.height / 3)) / this.step) {
-            this.goalRight.segments[3].point += new Point( this.step , 0);
-            this.goalLeft.segments[3].point += new Point( -1*this.step , 0);
+        if ( this.goalRight.segments[3] && this.count < (200 + (size.height / 3)) / this.step ) {
+            this.goalRight.segments[3].point += new Point( this.step, 0 );
+            this.goalLeft.segments[3].point += new Point( - 1 * this.step, 0 );
         }
 
     }
@@ -615,14 +614,16 @@ Pitch.prototype.change = function ( color ) {
     this.fieldLines.strokeColor = color;
     this.fieldLines.shadowColor = color;
 
-    game.scoreText.strokeColor = color;
-    game.scoreText.shadowColor = color;
+    game.scoreTextRight.strokeColor = color;
+    game.scoreTextRight.strokeColor = color;
+    game.scoreTextLeft.shadowColor = color;
+    game.scoreTextLeft.shadowColor = color;
 };
 
 var Background = function () {
 
     this.backgroundPrefix = '#background-';
-
+    this.currentplaybackrate = 1;
     backgroundLayer.activate();
 
     this.change( backgroundTheme );
@@ -631,14 +632,17 @@ var Background = function () {
 
 Background.prototype.change = function ( index ) {
 
-    if ($('.show video')[0]){
-        $('.show video')[0].pause();
+    if ( this.currentVideo ) {
+        this.currentVideo.pause();
     }
 
     $( '.show' ).removeClass( 'show' );
     $( this.backgroundPrefix + index ).addClass( 'show' );
 
-    $("#video-" + index )[0].play();
+    this.currentVideo = $( "#video-" + index )[0];
+
+    this.currentVideo.play();
+    this.currentVideo.playbackRate = this.currentplaybackrate;
 
     if ( this.backdrop ) {
         this.backdrop.remove();
@@ -678,7 +682,7 @@ function Goal ( team ) {
     };
 
     goalSound.play();
-    background.change( Math.floor( Math.random() * 4 ));
+    background.change( Math.floor( Math.random() * 4 ) );
 }
 
 Goal.prototype.iterate = function () {
@@ -720,20 +724,37 @@ function GameGraphics () {
 
     scoreLayer.activate();
 
-    this.scoreText = new PointText( {
-        point : [size.width/2,size.height/2 +30],
+    this.scoreTextLeft = new PointText( {
+        point : [size.width / 4, size.height / 2 + 30],
         justification : 'center',
-        fontSize : 100,
+        fontSize : 120,
         fillColor : 'white',
         shadowColor : "white",
         shadowBlur : 15,
         shadowOffset : new Point( 0, 0 )
     } );
-    this.scoreText.style = {
+
+    this.scoreTextRight = new PointText( {
+        point : [size.width / 4 + size.width / 2, size.height / 2 - 60],
+        justification : 'center',
+        fontSize : 120,
+        fillColor : 'white',
+        shadowColor : "white",
+        shadowBlur : 15,
+        shadowOffset : new Point( 0, 0 )
+    } );
+
+    this.scoreTextRight.rotate( 180 );
+
+    this.scoreTextLeft.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+    this.scoreTextRight.style = {
         fontFamily : 'Exo', fontWeight : 'bold'
     };
 
-    this.scoreText.content = this.score[0] + " : " + this.score[1];
+    this.scoreTextLeft.content = this.score[0];
+    this.scoreTextRight.content = this.score[1];
 
 };
 
@@ -742,7 +763,8 @@ GameGraphics.prototype = {
     goalScored : function ( team ) {
 
         this.score[team] = this.score[team] + 1;
-        this.scoreText.content = this.score[0] + " : " + this.score[1];
+        this.scoreTextLeft.content = this.score[0];
+        this.scoreTextRight.content = this.score[1];
 
         if ( ! goal ) {
             goal = new Goal( team );
@@ -779,6 +801,14 @@ function onKeyUp ( event ) {
 
     if ( event.key == 'f' ) {
         frenzy = new Frenzy( 1 );
+    }
+
+    if ( event.key == 'd' ) {
+        endFrenzy();
+    }
+
+    if ( event.key == 'p' ) {
+        $( '.show video' )[0].pause();
     }
 
     if ( event.key == '0' ) {
