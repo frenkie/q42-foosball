@@ -28,9 +28,25 @@ extend(PythonCamTracker.prototype, {
         return TABLE_DIMENSIONS;
     },
 
+    handlePosition: function ( position ) {
+
+        if ( this.points.length === 10 ) {
+            this.points.pop();
+        }
+        this.points.unshift( position );
+
+        this.emit('ball-positions', this.points );
+    },
+
     handleTrackerOutput: function ( output ) {
         if ( output ) {
-            console.log( 'data from python', output.toSting() );
+            output = output.toString();
+            if ( /ball-position:/i.test( output ) ) {
+                var position = output.split('ball-position:' )[1];
+                position = JSON.parse('{'+ position +'}');
+
+                this.handlePosition( position );
+            }
         }
     },
 
@@ -52,10 +68,7 @@ extend(PythonCamTracker.prototype, {
         }
 
         this.pythonTracker = spawn( 'python', spawnArguments );
-        this.pythonTracker.stdout.on('data', this.handleTrackerOutput.bind( this ));
-        this.pythonTracker.stderr.on('data', function (data) {
-            console.log('python stderr: ' + data);
-        });
+        this.pythonTracker.stderr.on('data', this.handleTrackerOutput.bind( this ));
     }
 });
 

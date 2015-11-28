@@ -158,6 +158,10 @@
 
             switch ( e.keyCode ) {
 
+                case 65:
+                    // A-Key
+                    // New balls
+
                 case 68:
                     // D-Key
                     socket.emit('score-right');
@@ -166,6 +170,11 @@
                 case 83:
                     // S-key
                     socket.emit('score-left');
+                    break;
+
+                case 87:
+                    // W-key
+                    // mode change
                     break;
 
                 default:

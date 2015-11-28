@@ -116,7 +116,7 @@ def printBallPosition(frame):
 						(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
 						0.55, (255, 255, 255), 2)
 
-			ws.send('Ball position: x:{}, y:{}'.format(posXCm, posYCm) )
+			logging.info('ball-position:"x":{},"y":{}'.format( math.floor(posXCm), math.floor(posYCm)));
 
 
 def printTableSize(frame):
@@ -166,8 +166,6 @@ Button(master, text='Save', command=setTableSize).grid(row=3, column=0, sticky=W
 # user first has to enter table dimensions before we start tracking
 mainloop()
 
-logging.info('logging data from python')
-
 # keep looping while tracking
 while True:
 
@@ -199,7 +197,7 @@ while True:
 	# a series of dilations and erosions to remove any small
 	# blobs left in the mask
 	mask = cv2.inRange(hsv, ballColor['lower'], ballColor['upper'])
-	mask = cv2.erode(mask, None, iterations=2)
+	#mask = cv2.erode(mask, None, iterations=2)
 	mask = cv2.dilate(mask, None, iterations=2)
 
 	# find contours in the mask and initialize the current
@@ -223,10 +221,10 @@ while True:
 			y += bounds['y']
 			center = ( center[ 0 ] + bounds['x'], center[ 1 ] + bounds['y'] )
 
-		# logging.info('Radius: %d', radius)
+		logging.info('Radius: %d', radius)
 
 		# only proceed if the radius meets a minimum size
-		if radius > 10:
+		if radius > 0:
 			# draw the circle and centroid on the frame,
 			# then update the list of tracked points
 
@@ -263,12 +261,15 @@ while True:
 
 	# show the frame to our screen
 
-	if args.get('kinect'):
-		cv2.imshow('Frame', get_depth())
-	else:
-		cv2.imshow('Frame', frame)
+	#if args.get('kinect'):
+	#	cv2.imshow('Frame', get_depth())
+	#else:
+	#	cv2.imshow('Frame', frame)
 
-	#cv2.imshow('Frame', frame)
+	cv2.imshow('Frame', frame)
+
+	if args.get('kinect'):
+		cv2.imshow('Depth', get_depth())
 
 	if len(tableDimensions) == 2:
 		cv2.imshow('Cutout', frameCut)
