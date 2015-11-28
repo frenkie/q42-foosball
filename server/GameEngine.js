@@ -220,10 +220,10 @@ GameEngine.prototype = {
         this.currentTheme = index;
     },
 
-    handleCycleTheme: function (  ) {
+    handleCycleTheme: function ( ) {
         this.currentTheme = this.currentTheme + 1;
 
-        if (this.currentTheme >= this.themes.length ){
+        if (this.currentTheme >= this.themes.length -1 ){
             this.currentTheme = 0;
         }
         console.log('theme cycled: ' + this.themes[this.currentTheme]);
