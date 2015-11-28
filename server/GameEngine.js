@@ -21,7 +21,7 @@ var GameEngine = function ( socket ) {
 
     this.bindSocketEvents();
 
-    this.themes = ['default', 'Tron', 'grass'];
+    this.themes = ['default', 'Tron', 'grass', 'grass2'];
     this.currentTheme = 0;
     this.frenzyThreshold = 3;
 
@@ -54,6 +54,7 @@ GameEngine.prototype = {
             client.on('get-themes', this.handleGetThemes.bind( this ) );
             client.on('get-current-theme', this.handleGetCurrentTheme.bind( this ) );
             client.on('change-theme', this.handleChangeTheme.bind( this ) );
+            client.on('cycle-theme', this.handleCycleTheme.bind( this ) );
 
             // Admin
             client.on('request-hsv', this.handleRequestHSV.bind( this ) );
@@ -217,6 +218,16 @@ GameEngine.prototype = {
         this.socket.emit('change-theme', index);
         console.log('theme changed: ' + this.themes[index]);
         this.currentTheme = index;
+    },
+
+    handleCycleTheme: function (  ) {
+        this.currentTheme = this.currentTheme + 1;
+
+        if (this.currentTheme >= this.themes.length ){
+            this.currentTheme = 0;
+        }
+        console.log('theme cycled: ' + this.themes[this.currentTheme]);
+        this.socket.emit('change-theme', this.currentTheme);
     }
 };
 

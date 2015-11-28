@@ -3,15 +3,18 @@ var fieldLayer = new Layer();
 var hitLayer = new Layer();
 var trailBallLayer = new Layer();
 var ballLayer = new Layer();
-var frenzyLayer = new Layer();
 var scoreLayer = new Layer();
+var frenzyLayer = new Layer();
 var overlayLayer = new Layer();
 
+var startScreen;
 var ball;
 var background;
 var game;
 var goal;
 var hits = [];
+
+var themeText;
 
 var backgroundTheme = 0;
 
@@ -35,23 +38,35 @@ var screenSize = {
 };
 
 
-var socket = io( "http://10.42.38.110:9090" );
+var socket  = io( "http://10.42.38.110:9090" );
+
+
+
+//  THEMES
+var themeNames = [
+    "CLASSIC",
+    "HYPER",
+    "ZEN",
+    "REGULAR"
+];
 
 
 // SOUNDS
 var soundPlaying;
 
-var ost = new buzz.sound( "sounds/soundtrack", { formats : ["mp3"] } );
+var ost;
+
+var ost1  = new buzz.sound( "sounds/soundtrack-0", { formats : ["mp3"] } );
+var ost2  = new buzz.sound( "sounds/soundtrack-1", { formats : ["mp3"] } );
+var ost3  = new buzz.sound( "sounds/soundtrack-0", { formats : ["mp3"] } );
+var ost4  = new buzz.sound( "sounds/soundtrack-1", { formats : ["mp3"] } );
+var ostList = [ ost1, ost2, ost3, ost4 ];
+
 var frenzyTrack = new buzz.sound( "sounds/frenzy-track-short", { formats : ["mp3"] } );
 var frenzySound = new buzz.sound( "sounds/frenzy", { formats : ["mp3"] } );
-
-ost.play();
-ost.loop();
-
 var goalSound = new buzz.sound( "sounds/goal1", { formats : ["wav"] } );
+
 var explosionLongSound = new buzz.sound( "sounds/explosion-long", { formats : ["wav"] } );
-
-
 var fussBallSounds = new buzz.group( [goalSound, explosionLongSound] );
 
 fussBallSounds.bind( "ended", function ( e ) {
@@ -62,6 +77,39 @@ fussBallSounds.bind( "play", function ( e ) {
     soundPlaying = true;
 } );
 
+
+
+function StartScreen(){
+
+    overlayLayer.activate();
+
+    this.backdrop = new Shape.Rectangle( {
+        center : [size.width / 2, size.height / 2],
+        size : [size.width, size.height],
+        fillColor : 'green'
+    } );
+
+
+    this.text = new PointText( {
+        point : [ size.width / 2, size.height / 2+ 50 ],
+        justification : 'center',
+        fontSize : 100,
+        strokeColor : 'white',
+        fillColor: "black"
+    } );
+
+    this.text.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+
+    this.text.content = "PULL TO START";
+
+};
+
+StartScreen.prototype.iterate = function(){
+
+    this.backdrop.fillColor.hue += 1;
+};
 
 function handleSocketEvents () {
 
@@ -128,6 +176,10 @@ function handleSocketEvents () {
         console.log( event );
         game.goalScored( 1 );
     } );
+
+
+    //socket.emit( 'get-current-theme' );
+    //socket.emit( 'reset-game' );
 
 }
 
@@ -240,79 +292,82 @@ var Frenzy = function ( owner ) {
     var ownerColor = teamColors[owner];
     frenzyLayer.activate();
 
-    //this.lifespan = 280;
     this.lifespan = 0;
     this.frenzyTextGroup = [];
 
     //
-    ost.mute();
+    if (ost){
+        ost.mute();
+    }
     frenzyTrack.play();
     frenzyTrack.loop();
     background.currentplaybackrate = 3;
     background.currentVideo.playbackRate = background.currentplaybackrate;
     frenzySound.play();
 
-    //if ( ! soundPlaying ) {
-    //
-    //}
 
-    for ( var i = 0; i < 20; i ++ ) {
-        var text = new PointText( {
-            point : [i * 100, size.height / 2],
+    this.text = new PointText( {
+            point : [ size.width / 2, size.height / 2+ 50],
             justification : 'center',
-            fontSize : 100,
+            fontSize : 150,
             strokeColor : 'white'
         } );
-        text.style = {
-            fontFamily : 'Exo', fontWeight : 'bold'
-        };
-        text.content = "FRENZY FRENZY FRENZY   ";
 
-        if ( i % 2 == 0 ) {
-            text.content = "   FRENZY FRENZY FRENZY";
-        }
-        text.strokeColor.hue = Math.floor( Math.random() * 30 );
-        text.opacity = 0;
-        text.rotate( 60 );
-        this.frenzyTextGroup.push( text );
+    this.text.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
     };
+
+    this.text.content = "FRENZY !!! ";
+
+    //for ( var i = 0; i < 20; i ++ ) {
+    //    var text = new PointText( {
+    //        point : [i * 100, size.height / 2],
+    //        justification : 'center',
+    //        fontSize : 100,
+    //        strokeColor : 'white'
+    //    } );
+    //    text.style = {
+    //        fontFamily : 'Exo', fontWeight : 'bold'
+    //    };
+    //    text.content = "FRENZY FRENZY FRENZY   ";
+    //
+    //    if ( i % 2 == 0 ) {
+    //        text.content = "   FRENZY FRENZY FRENZY";
+    //    }
+    //    text.strokeColor.hue = Math.floor( Math.random() * 30 );
+    //    text.opacity = 0;
+    //    text.rotate( 60 );
+    //    this.frenzyTextGroup.push( text );
+    //};
+
+     new Shape.Rectangle( {
+        center : [size.width / 2, size.height / 2],
+        size : [ size.width + 70 , size.height + 70],
+        strokeColor : 'rgb(0,0,255,1)',
+        strokeWidth : 70,
+        shadowColor : "blue",
+        shadowBlur : 300,
+        shadowOffset : new Point( 0, 0 )
+    } );
 
 };
 
 Frenzy.prototype.iterate = function () {
 
-    // Iterate through the items contained within the array:
-    for ( var i = 0; i < this.frenzyTextGroup.length; i ++ ) {
-        var child = this.frenzyTextGroup[i];
+    if ( this.lifespan % 10 == 0 ) {
 
-
-        if ( this.lifespan % 10 == 0 ) {
-            child.strokeColor.hue = Math.floor( Math.random() * 60 );
+        if ( this.text.opacity == 0 ) {
+            this.text.opacity = 1;
+        } else {
+            this.text.opacity = 0;
         }
-
-        if ( this.lifespan % 3 == 0 ) {
-
-            var opt = Math.floor( Math.random() * 4 );
-            if ( opt == 0 ) {
-                child.opacity = 1;
-            } else {
-                child.opacity = 0;
-            }
-        }
-
-        //if ( this.lifespan == 0 ) {
-        //    child.remove();
-        //}
     }
+
     this.lifespan ++;
 
-    //if ( this.lifespan == 0 ) {
-    //    this.frenzyTextGroup = [];
-    //    endFrenzy();
-    //}
-    //
-    //this.lifespan --;
-
+    if ( this.lifespan == 180 ) {
+        this.text.remove();
+    }
 };
 
 var trailBalls = [];
@@ -384,7 +439,6 @@ Ball.prototype.removeStills = function () {
         this.still2.remove();
     }
 
-    this.stillCounter = 0;
     this.still2 = undefined;
     this.still = undefined;
 };
@@ -431,11 +485,11 @@ Ball.prototype.iterate = function ( position ) {
 
     var speed = this.item.pre - this.item.position;
 
-    if ( speed.length > 50 && speed.length > this.preSpeed ) {
-        if ( ! soundPlaying ) {
-            explosionLongSound.play();
-        }
-    }
+    //if ( speed.length > 50 && speed.length > this.preSpeed ) {
+    //    if ( ! soundPlaying ) {
+    //        explosionLongSound.play();
+    //    }
+    //}
 
 
     if ( speed.length > 2 ) {
@@ -448,46 +502,6 @@ Ball.prototype.iterate = function ( position ) {
         trailBalls.push( new TrailBall(
             newPosX + Math.floor( Math.random() * 20 ),
             newPosY + Math.floor( Math.random() * 20 ), speed.length ) );
-
-    } else if ( speed.length == 0 ) {
-
-        //if ( this.still ) {
-        //
-        //    this.stillCounter = this.stillCounter + 1;
-        //
-        //    if ( this.still.size.width >= 160 ) {
-        //        this.still.size = 5;
-        //    }
-        //    this.still.size = this.still.size + 1;
-        //
-        //
-        //    if ( this.still2 && this.still2.size.width >= 160 ) {
-        //        this.still2.size = 5;
-        //    }
-        //    if ( this.still2 ) {
-        //        this.still2.size = this.still2.size + 1;
-        //    }
-        //    if ( this.stillCounter == 60 ) {
-        //
-        //        this.still2 = new Shape.Ellipse( {
-        //            center : [this.item.position.x, this.item.position.y],
-        //            size : [50, 50],
-        //            fillColor : 'rgba(0,0,0,0)',
-        //            strokeColor : ownerColor,
-        //            strokeWidth : 5
-        //        } );
-        //    }
-        //
-        //} else {
-        //    this.stillCounter = 0;
-        //    this.still = new Shape.Ellipse( {
-        //        center : [this.item.position.x, this.item.position.y],
-        //        size : [50, 50],
-        //        fillColor : 'rgba(0,0,0,0)',
-        //        strokeColor : ownerColor,
-        //        strokeWidth : 5
-        //    } );
-        //}
 
 
     }
@@ -620,33 +634,95 @@ Pitch.prototype.change = function ( color ) {
     game.scoreTextLeft.shadowColor = color;
 };
 
+
+
 var Background = function () {
 
-    this.backgroundPrefix = '#background-';
     this.currentplaybackrate = 1;
     backgroundLayer.activate();
 
+    this.currentVideo = $( "#background-video" )[0];
+
     this.change( backgroundTheme );
+
 
 };
 
 Background.prototype.change = function ( index ) {
 
-    if ( this.currentVideo ) {
-        this.currentVideo.pause();
-    }
-
-    $( '.show' ).removeClass( 'show' );
-    $( this.backgroundPrefix + index ).addClass( 'show' );
-
-    this.currentVideo = $( "#video-" + index )[0];
-
+    this.currentVideo.src = "resources/video/video-"+ index + ".mp4";
     this.currentVideo.play();
     this.currentVideo.playbackRate = this.currentplaybackrate;
 
     if ( this.backdrop ) {
         this.backdrop.remove();
     }
+    if (ost){
+        ost.stop();
+    }
+    ost  = ostList[ index ];
+    ost.play();
+    ost.loop();
+
+    showThemeText( index );
+
+};
+
+function showThemeText( index ){
+
+    removeThemeText();
+
+    themeText = new ThemeText( index )
+}
+
+function removeThemeText(){
+
+    if ( themeText ){
+        themeText.themeText1.remove();
+        themeText.themeText2.remove();
+    }
+}
+
+function ThemeText( index ){
+
+    this.themeText1 = new PointText( {
+        point : [size.width / 2,  150 ],
+        justification : 'center',
+        fontSize : 50,
+        fillColor : 'white'
+    } );
+
+    this.themeText2 = new PointText( {
+        point : [size.width / 2,  size.height - 150 ],
+        justification : 'center',
+        fontSize : 50,
+        fillColor : 'white'
+    } );
+
+    this.themeText2.rotate(180);
+
+    this.themeText1.content = themeNames[ index ] + " MODE ACTIVATED";
+    this.themeText2.content = themeNames[ index ] +" MODE ACTIVATED";
+
+    this.themeText1.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+    this.themeText2.style = {
+        fontFamily : 'Exo', fontWeight : 'bold'
+    };
+
+    this.lifespan = 0;
+
+
+}
+
+ThemeText.prototype.iterate = function(){
+
+    if ( this.lifespan == 180 ) {
+        removeThemeText();
+
+    }
+    this.lifespan ++;
 
 };
 
@@ -708,7 +784,7 @@ Goal.prototype.iterate = function () {
         if ( frenzyTeam ) {
             frenzy = new Frenzy( frenzyTeam );
         } else {
-            replayBalls.push( new ReplayBall() );
+           // replayBalls.push( new ReplayBall() );
         }
 
         goalEnd();
@@ -720,6 +796,9 @@ var goalEnd = function () {
 };
 
 function GameGraphics () {
+
+    overlayLayer.removeChildren();
+
     this.score = [0, 0];
 
     scoreLayer.activate();
@@ -762,7 +841,7 @@ GameGraphics.prototype = {
 
     goalScored : function ( team ) {
 
-        this.score[team] = this.score[team] + 1;
+        this.score[ team ] = this.score[team] + 1;
         this.scoreTextLeft.content = this.score[0];
         this.scoreTextRight.content = this.score[1];
 
@@ -826,7 +905,9 @@ function onKeyUp ( event ) {
 
 
 function onFrame ( event ) {
-
+    if (!game && startScreen){
+        startScreen.iterate();
+    }
     if ( game ) {
         for ( var i = 0; i < hits.length; i ++ ) {
             hits[i].iterate();
@@ -834,6 +915,11 @@ function onFrame ( event ) {
 
         for ( var y = 0; y < trailBalls.length; y ++ ) {
             trailBalls[y].iterate();
+        }
+
+
+        if ( themeText ) {
+            themeText.iterate();
         }
 
         if ( goal ) {
@@ -868,8 +954,7 @@ Number.prototype.map = function ( in_min, in_max, out_min, out_max ) {
 };
 
 
+
 handleSocketEvents();
 
-socket.emit( 'get-current-theme' );
-socket.emit( 'reset-game' );
-
+startScreen = new StartScreen();
