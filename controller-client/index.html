@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Foosball controller</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<!--    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">-->
     <link rel="stylesheet" href="css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="config.js"></script>
     <script>
         document.write('<script id="script-socket" src="http://'+ config.server.host +':'+ config.server.port +'/socket.io/socket.io.js"></'+'script>');
@@ -12,41 +14,33 @@
 </head>
 <body>
 <main>
-    <h3>Foosball Controller</h3>
-    <p>
-        <button type="button" id="btn-reset-game" class="btn btn-default btn-lg">
-            <!--<span class="glyphicon glyphicon-star"
-                  aria-hidden="true"></span>--> New game
-        </button>
-    </p>
-    <p>
-        <button type="button" id="btn-score-left" class="btn btn-default btn-lg">
-             Score left
-        </button>
-    </p>
-    <p>
-        <button type="button" id="btn-score-right" class="btn btn-default btn-lg">
-             Score right
-        </button>
-    </p>
-    <p>
-        <button type="button" id="btn-subtract-score-left" class="btn btn-default btn-lg">
-             Subtract score left
-        </button>
-    </p>
-    <p>
-        <button type="button" id="btn-subtract-score-right" class="btn btn-default btn-lg">
-             Subtract score right
-        </button>
-    </p>
-    <p>
-        <label for="dd-change-theme">Choose a theme</label>
-        <select class="form-control btn btn-default btn-lg" id="dd-change-theme">
-<!--            <option value="0">standaard</option>
-            <option value="1">gras</option>
-            <option value="2">woestijn</option>-->
-        </select>
-    </p>
+        <span id="btn-reset-game" class="btn btn-default">
+            Nieuw Spel
+        </span>
+
+<!--        <select id="dd-change-theme" class="btn btn-default">
+
+        </select>-->
+
+        <span id="btn-change-theme" class="btn btn-default">
+
+        </span>
+
+        <span id="btn-score-left" class="btn btn-score btn-red">
+             + 1 punt
+        </span>
+
+        <span id="btn-score-right" class="btn btn-score btn-blue">
+             + 1 punt
+        </span>
+
+        <span  id="btn-subtract-score-left" class="btn btn-score btn-red">
+             - 1 punt
+        </span>
+
+        <span id="btn-subtract-score-right" class="btn btn-score btn-blue">
+             - 1 punt
+        </span>
 
 
 </main>

@@ -7,7 +7,9 @@ var MAIN = (function () {
     // globals
     var
         socket = null,
-        $ddThemes = null;
+        $ddThemes = null,
+        theming = [],
+        currentTheme = 0;
 
 
     // initialize
@@ -24,6 +26,7 @@ var MAIN = (function () {
         $('#btn-subtract-score-left').on('click', subtractScoreLeft);
         $('#btn-subtract-score-right').on('click', subtractScoreRight);
 
+
         // init themes
         $ddThemes = $('#dd-change-theme');
         socket.emit('get-themes');
@@ -33,7 +36,7 @@ var MAIN = (function () {
     init ();
 
     socket.on('get-themes', function (themes) {
-
+        theming = themes;
         $.each(themes, function(i) {
            $ddThemes.append(
                 $('<option></option>').text(this).val(i)
@@ -44,7 +47,12 @@ var MAIN = (function () {
         socket.on('get-current-theme', function (theme) {
             console.log( 'theme:' + theme);
             $ddThemes.val(theme);
+            currentTheme = theme;
+            $('#btn-change-theme').html(theming[theme]);
         });
+
+        $('#btn-change-theme').on('click', changeTheme);
+
         socket.emit('get-current-theme');
 
     });
@@ -72,7 +80,12 @@ var MAIN = (function () {
 
 
     function changeTheme(){
-        socket.emit('change-theme', this.value);
+        currentTheme++;
+        if (currentTheme == theming.length){
+            currentTheme = 0;
+        }
+        $('#btn-change-theme').html(theming[currentTheme]);
+        socket.emit('change-theme', currentTheme);
     }
 
 
