@@ -4,7 +4,7 @@ var Q = require('q');
 var spawn = require( 'child_process' ).spawn;
 var util = require('util');
 
-var TABLE_DIMENSIONS = { length: 120, height: 68 }; // in cm's
+var TABLE_DIMENSIONS = { length: 121, height: 69 }; // in cm's
 var TABLE_BOUNDS; // when there is a cut out of the webcam
 
 var PythonCamTracker = function () {
@@ -29,6 +29,9 @@ extend(PythonCamTracker.prototype, {
     },
 
     handlePosition: function ( position ) {
+
+        position.x = Math.floor( position.x );
+        position.y = Math.floor( position.y );
 
         if ( this.points.length === 10 ) {
             this.points.pop();

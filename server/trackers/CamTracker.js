@@ -11,7 +11,7 @@ var RED = [0, 0, 255]; // B, G, R
 var BLUE = [255, 0, 0]; // B, G, R
 var WHITE = [255, 255, 255]; // B, G, R
 
-var TABLE_DIMENSIONS = { length: 120, height: 68 }; // in cm's
+var TABLE_DIMENSIONS = { length: 121, height: 69 }; // in cm's
 var TABLE_BOUNDS; // when there is a cut out of the webcam
 
 
