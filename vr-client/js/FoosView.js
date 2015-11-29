@@ -1,7 +1,7 @@
 var FoosView = function() {
 
     this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-    this.camera.position.set( 1, 2, 5);
+    this.camera.position.set( 1, 75, 5);
 
     this.cameraTarget = new THREE.Vector3();
     this.lat = 0;

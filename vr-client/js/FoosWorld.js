@@ -48,7 +48,40 @@ FoosWorld.prototype = {
         this.floor.position.set( 0, -1, 0 );
         this.scene.add(this.floor);
 
-        this.ball.position.set(10, 2, 10);
+        this.ball.position.set(10, 75, 10);
         this.scene.add( this.ball );
+
+        var manager = new THREE.LoadingManager();
+            manager.onProgress = function ( item, loaded, total ) {
+
+                console.log( item, loaded, total );
+
+            };
+        var onProgress = function ( xhr ) {
+    					if ( xhr.lengthComputable ) {
+    						var percentComplete = xhr.loaded / xhr.total * 100;
+    						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+    					}
+    				};
+
+    				var onError = function ( xhr ) {
+    				};
+        var loader = new THREE.OBJLoader( manager );
+        loader.load( 'assets/models/Fussball.obj', function ( object ) {
+
+            object.traverse( function ( child ) {
+
+                if ( child instanceof THREE.Mesh ) {
+
+                    //child.material.map = texture;
+
+                }
+
+            } );
+
+            object.position.set( 10, 0, 10);
+            this.scene.add( object );
+
+        }.bind(this), onProgress, onError );
     }
 };

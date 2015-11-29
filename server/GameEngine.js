@@ -42,24 +42,26 @@ GameEngine.prototype = {
 
             console.log('connected!');
 
+            // Tracker
+            client.on('ball-positions', this.handleBallPositions.bind( this ) );
+
             // Gameplay
+            client.on('change-theme', this.handleChangeTheme.bind( this ) );
+            client.on('cycle-theme', this.handleCycleTheme.bind( this ) );
+            client.on('get-current-theme', this.handleGetCurrentTheme.bind( this ) );
+            client.on('get-themes', this.handleGetThemes.bind( this ) );
+
+            client.on('reset-game', this.handleResetGame.bind( this ) );
+
             client.on('score-left', this.handleScoreLeft.bind( this ) );
             client.on('score-right', this.handleScoreRight.bind( this ) );
 
             client.on('subtract-score-left', this.handleSubtractScoreLeft.bind( this ) );
             client.on('subtract-score-right', this.handleSubtractScoreRight.bind( this ) );
 
-            client.on('reset-game', this.handleResetGame.bind( this ) );
-
-            client.on('get-themes', this.handleGetThemes.bind( this ) );
-            client.on('get-current-theme', this.handleGetCurrentTheme.bind( this ) );
-            client.on('change-theme', this.handleChangeTheme.bind( this ) );
-            client.on('cycle-theme', this.handleCycleTheme.bind( this ) );
-
             // Admin
             client.on('request-hsv', this.handleRequestHSV.bind( this ) );
             client.on('table-bounds', this.handleTableBounds.bind( this ) );
-            client.on('ball-positions', this.handleBallPositions.bind( this ) );
 
 
           // Send stats
@@ -105,11 +107,64 @@ GameEngine.prototype = {
         this.socket.emit( 'ball-positions', data );
     },
 
-    handleRequestHSV: function ( position ) {
+    handleChangeTheme: function ( index ) {
+        this.socket.emit('change-theme', index);
+        console.log('theme changed: ' + this.themes[index]);
+        this.currentTheme = index;
+    },
 
-        this.tracker.getHSVForPosition( position ).then( function ( hsv ) {
-            this.socket.emit('get-hsv', hsv);
-        }.bind( this ) );
+    handleCycleTheme: function ( ) {
+
+        if (this.currentTheme >= this.themes.length -1 ){
+            this.currentTheme = -1;
+        }
+        this.currentTheme = this.currentTheme + 1;
+
+        console.log('theme cycled: ' + this.themes[this.currentTheme]);
+        this.socket.emit('change-theme', this.currentTheme);
+    },
+
+    handleFrenzy: function( team ) {
+
+        if ( team == this.state.lastScorer ) {
+
+            this.state.score.frenzy++;
+            if ( this.state.score.frenzy >= this.frenzyThreshold ) {
+                this.socket.emit('frenzy', team, true);
+                console.log('frenzy '+ team, true);
+            }
+
+        } else {
+            this.state.score.frenzy = 0;
+            this.socket.emit('frenzy', this.state.lastScorer, false);
+            console.log('frenzy '+ this.state.lastScorer, false);
+        }
+
+        this.state.lastScorer = team;
+
+    },
+
+    handleGetCurrentTheme: function ( ) {
+        this.socket.emit('get-current-theme', this.currentTheme);
+        console.log('get current theme: ' + this.themes[this.currentTheme]);
+    },
+
+    handleGetThemes: function ( ) {
+        this.socket.emit('get-themes', this.themes);
+        console.log('get themes: ', this.themes);
+    },
+
+    handleRequestHSV: function ( position ) {
+        if ( this.tracker && this.tracker.getHSVForPosition ) {
+            this.tracker.getHSVForPosition( position ).then( function ( hsv ) {
+                this.socket.emit( 'get-hsv', hsv );
+            }.bind( this ) );
+        }
+    },
+
+    handleResetGame: function () {
+        this.resetGame();
+        this.socket.emit('reset-game');
     },
 
     handleScoreLeft: function () {
@@ -162,34 +217,9 @@ GameEngine.prototype = {
         this.socket.emit('score-update', this.state.score );
     },
 
-    handleFrenzy: function( team ) {
-
-        if ( team == this.state.lastScorer ) {
-
-            this.state.score.frenzy++;
-            if ( this.state.score.frenzy >= this.frenzyThreshold ) {
-                this.socket.emit('frenzy', team, true);
-                console.log('frenzy '+ team, true);
-            }
-
-        } else {
-            this.state.score.frenzy = 0;
-            this.socket.emit('frenzy', this.state.lastScorer, false);
-            console.log('frenzy '+ this.state.lastScorer, false);
-        }
-
-        this.state.lastScorer = team;
-
-    },
-
     handleTableBounds: function ( bounds ) {
         console.log('bounds');
         this.tracker.setTableBounds( bounds );
-    },
-
-    handleResetGame: function () {
-        this.resetGame();
-        this.socket.emit('reset-game');
     },
 
     resetGame: function () {
@@ -202,33 +232,6 @@ GameEngine.prototype = {
                 frenzy: 0
             }
         };
-    },
-
-    handleGetThemes: function ( ) {
-        this.socket.emit('get-themes', this.themes);
-        console.log('get themes: ', this.themes);
-    },
-
-    handleGetCurrentTheme: function ( ) {
-        this.socket.emit('get-current-theme', this.currentTheme);
-        console.log('get current theme: ' + this.themes[this.currentTheme]);
-    },
-
-    handleChangeTheme: function ( index ) {
-        this.socket.emit('change-theme', index);
-        console.log('theme changed: ' + this.themes[index]);
-        this.currentTheme = index;
-    },
-
-    handleCycleTheme: function ( ) {
-
-        if (this.currentTheme >= this.themes.length -1 ){
-            this.currentTheme = 0;
-        }
-        this.currentTheme = this.currentTheme + 1;
-
-        console.log('theme cycled: ' + this.themes[this.currentTheme]);
-        this.socket.emit('change-theme', this.currentTheme);
     }
 };
 

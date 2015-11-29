@@ -2,6 +2,12 @@
   "name": "q42-foosball-server",
   "version": "1.0.0",
   "description": "A Digital Foosball server",
+  "scripts": {
+    "webcam": "npm start",
+    "python:webcam": "PYTHON_TRACKER=yes npm start",
+    "python:kinect": "PYTHON_TRACKER=kinect npm start",
+    "notracking": "NOTRACK=true npm start"
+  },
   "devDependencies": {
     "express": "^4.13.3",
     "socket.io": "^1.3.7"

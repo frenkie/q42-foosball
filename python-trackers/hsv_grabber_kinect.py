@@ -36,6 +36,6 @@ while True:
 	s=cv.Get2D(hsv,y_co,x_co)
 	print "H:",s[0],"      S:",s[1],"       V:",s[2]
 	cv.PutText(src,str(s[0])+","+str(s[1])+","+str(s[2]), (x_co,y_co),font, (55,25,255))
-	cv.ShowImage("camera", src)
+	cv.ShowImage("camera", hsv)
 	if cv.WaitKey(10) == 27:
 		break

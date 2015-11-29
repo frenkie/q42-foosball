@@ -4,11 +4,12 @@
     "port": 9090
   },
   "controller": {
-    "host": "localhost",
     "port": 8085
   },
+  "tv": {
+    "port": 8080
+  },  
   "vr": {
-    "host": "localhost",
     "port": 9099
   }
 }

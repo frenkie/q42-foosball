@@ -39,7 +39,7 @@ var screenSize = {
 };
 
 
-var socket = io( "http://10.42.38.110:9090" );
+var socket = io($('#script-socket').attr('src').split('/socket.io')[0]);
 
 
 //  THEMES

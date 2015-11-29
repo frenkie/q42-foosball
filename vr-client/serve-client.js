@@ -4,7 +4,7 @@ var config = require('../config.json');
 var app = express();
 var server = require('http').Server( app );
 
-var port = config.vr.port || 9099;
+var port = config.vr.port;
 
 app.get( '/config.js', function ( req, res ) {
     res.set('Content-Type', 'application/javascript');

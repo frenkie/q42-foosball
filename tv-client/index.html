@@ -12,7 +12,10 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/buzz/1.1.10/buzz.min.js"></script></head>
 
-    <script src="http://10.42.38.110:9090/socket.io/socket.io.js"></script>
+    <script src="config.js"></script>
+    <script>
+        document.write('<script id="script-socket" src="http://'+ config.server.host +':'+ config.server.port +'/socket.io/socket.io.js"></'+'script>');
+    </script>
 
     <script src='js/tv-clent.js' type="text/paperscript" canvas="canvas"></script>
 </head>

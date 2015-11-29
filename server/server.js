@@ -8,7 +8,7 @@ var app = express();
 var server = require('http').Server( app );
 var io = socketIo( server );
 
-var port = config.server.port || 9090;
+var port = config.server.port;
 
 var adminRouter = require('./routes/admin');
 var vendorRouter = require('./routes/vendor');
