@@ -39,7 +39,7 @@ var screenSize = {
 };
 
 
-var socket = io($('#script-socket').attr('src').split('/socket.io')[0]);
+var socket = io( $( '#script-socket' ).attr( 'src' ).split( '/socket.io' )[0] );
 
 
 //  THEMES
@@ -135,6 +135,7 @@ function StartScreen () {
         fontFamily : 'Exo', fontWeight : 'bold'
     };
 
+    this.text.rotate( 180 );
     this.text.content = "PULL TO START";
 
 };
@@ -164,16 +165,13 @@ function handleSocketEvents () {
         game = new GameGraphics();
     } );
 
-    //background = new Background();
-    //pitch = new Pitch();
-    //ball = new Ball();
-    //game = new GameGraphics();
-
     socket.on( 'end-frenzy', function () {
         frenzyTeam = undefined;
     } );
 
     socket.on( 'frenzy', function ( team, state ) {
+
+        console.log( team, state );
 
         if ( team == 'left' ) {
             frenzyTeam = 1;
@@ -185,6 +183,7 @@ function handleSocketEvents () {
 
         if ( ! state ) {
             frenzyTeam = undefined;
+            endFrenzy();
         }
     } );
 
@@ -224,9 +223,6 @@ function handleSocketEvents () {
         game.goalScored( 1 );
     } );
 
-
-    //socket.emit( 'get-current-theme' );
-    //socket.emit( 'reset-game' );
 
 }
 
@@ -329,7 +325,7 @@ var endFrenzy = function () {
     frenzySound.stop();
     currentFrenzyTrack.stop();
     ost.unmute();
-    //ost.loop();
+
     background.currentplaybackrate = 1;
     background.currentVideo.playbackRate = background.currentplaybackrate;
 };
@@ -351,9 +347,6 @@ var Frenzy = function ( owner ) {
     currentFrenzyTrack.play();
     currentFrenzyTrack.loop();
 
-    //
-    //frenzyTrack.play();
-    //frenzyTrack.loop();
     background.currentplaybackrate = 3;
     background.currentVideo.playbackRate = background.currentplaybackrate;
     frenzySound.play();
@@ -371,27 +364,6 @@ var Frenzy = function ( owner ) {
     };
 
     this.text.content = "FRENZY !!! ";
-
-    //for ( var i = 0; i < 20; i ++ ) {
-    //    var text = new PointText( {
-    //        point : [i * 100, size.height / 2],
-    //        justification : 'center',
-    //        fontSize : 100,
-    //        strokeColor : 'white'
-    //    } );
-    //    text.style = {
-    //        fontFamily : 'Exo', fontWeight : 'bold'
-    //    };
-    //    text.content = "FRENZY FRENZY FRENZY   ";
-    //
-    //    if ( i % 2 == 0 ) {
-    //        text.content = "   FRENZY FRENZY FRENZY";
-    //    }
-    //    text.strokeColor.hue = Math.floor( Math.random() * 30 );
-    //    text.opacity = 0;
-    //    text.rotate( 60 );
-    //    this.frenzyTextGroup.push( text );
-    //};
 
     new Shape.Rectangle( {
         center : [size.width / 2, size.height / 2],
@@ -512,6 +484,7 @@ Ball.prototype.iterate = function ( position ) {
         replayPositions.shift();
     }
 
+    // DETECT BALL HITTING EDGE
     if ( 0 > (this.item.position.x - this.radius / 2) ) {
         if ( this.allowNewHit ) {
             hits.push( new Hit( this.item.position.x - this.radius, this.item.position.y ) );
@@ -543,6 +516,7 @@ Ball.prototype.iterate = function ( position ) {
     //        explosionLongSound.play();
     //    }
     //}
+    //this.preSpeed = speed.length;
 
 
     if ( speed.length > 2 ) {
@@ -559,7 +533,6 @@ Ball.prototype.iterate = function ( position ) {
 
     }
 
-    this.preSpeed = speed.length;
     this.item.pre = this.item.position;
 
 };
@@ -628,7 +601,6 @@ var Pitch = function () {
 
 Pitch.prototype.build = function () {
 
-    //console.log( this.count
     this.count ++;
 
     if ( this.drawing ) {
@@ -722,9 +694,9 @@ Background.prototype.change = function ( index ) {
 
 };
 
-Background.prototype.changeVideo = function (randomized){
+Background.prototype.changeVideo = function ( randomized ) {
 
-    this.currentVideo.src = "resources/video/video-" + this.currentTheme + randomized+".mp4";
+    this.currentVideo.src = "resources/video/video-" + this.currentTheme + randomized + ".mp4";
     this.currentVideo.play();
     this.currentVideo.playbackRate = this.currentplaybackrate;
 
@@ -732,7 +704,6 @@ Background.prototype.changeVideo = function (randomized){
         ost.stop();
     }
     ost = ostList[this.currentTheme][randomized];
-    //console.log(ost, this.currentVideo.src);
     ost.play();
     ost.loop();
 
@@ -857,15 +828,12 @@ Goal.prototype.iterate = function () {
         if ( frenzyTeam ) {
             frenzy = new Frenzy( frenzyTeam );
         } else {
-             replayBalls.push( new ReplayBall() );
+            replayBalls.push( new ReplayBall() );
         }
 
-        goalEnd();
-    }
-};
+        goal = undefined;
 
-var goalEnd = function () {
-    goal = undefined;
+    }
 };
 
 function GameGraphics () {
@@ -1023,16 +991,6 @@ function onMouseMove ( event ) {
         currentPos = event.point;
 }
 
-Number.prototype.map = function ( in_min, in_max, out_min, out_max ) {
-    return (this - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-};
-
-
 handleSocketEvents();
 
 startScreen = new StartScreen();
-//
-//background = new Background();
-//pitch = new Pitch();
-//ball = new Ball();
-//game = new GameGraphics();

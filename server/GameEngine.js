@@ -129,7 +129,7 @@ GameEngine.prototype = {
         if ( team == this.state.lastScorer ) {
 
             this.state.score.frenzy++;
-            if ( this.state.score.frenzy >= this.frenzyThreshold ) {
+            if ( this.state.score.frenzy >= this.frenzyThreshold -1) {
                 this.socket.emit('frenzy', team, true);
                 console.log('frenzy '+ team, true);
             }
